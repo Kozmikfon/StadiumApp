@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, TextInput, ScrollView, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { Alert } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -28,10 +29,13 @@ const HomeScreen = ({ navigation }: any) => {
 
       {/* Grid Kartlar */}
       <View style={styles.gridRow}>
-        <TouchableOpacity style={styles.gridItem} onPress={() => alert('Maçlar')}>
-          <Text style={styles.gridIcon}>🗓️</Text>
-          <Text style={styles.gridText}>Maçlar</Text>
-        </TouchableOpacity>
+
+      <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.gridIcon}>🗓️</Text>
+        <Text style={styles.gridText}>Maçlar</Text>
+      </TouchableOpacity>
+
+
         <TouchableOpacity style={styles.gridItem} onPress={() => alert('Takımlar')}>
           <Text style={styles.gridIcon}>🏆</Text>
           <Text style={styles.gridText}>Takımlar</Text>
@@ -50,12 +54,19 @@ const HomeScreen = ({ navigation }: any) => {
       </View>
 
       {/* Maç Ara */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Maç Ara..."
-          style={styles.searchInput}
-        />
-      </View>
+      <Text style={styles.sliderTitle}>⚽ Maç Seçenekleri</Text>
+<View style={styles.buttonRow}>
+    <TouchableOpacity style={styles.searchButton} onPress={() => alert('Bugünkü Maçlar')}>
+        <Text style={styles.buttonText}>🏟️ Bugünkü Maçlar</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.searchButton} onPress={() => alert('Haftalık Maçlar')}>
+        <Text style={styles.buttonText}>📅 Haftalık Maçlar</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.searchButton} onPress={() => alert('Tüm Maçlar')}>
+        <Text style={styles.buttonText}>🔎 Tüm Maçlar</Text>
+    </TouchableOpacity>
+</View>
+
 
       {/* Slider - Haftanın Maçı / Oyuncusu */}
       <Text style={styles.sliderTitle}>📢 Haftanın Öne Çıkanları</Text>
@@ -76,6 +87,23 @@ const HomeScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
+  buttonRow: {
+    marginHorizontal: 20,
+    marginBottom: 10,
+},
+searchButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    alignItems: 'center',
+},
+buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16
+},
+
   container: {
     paddingBottom: 20,
     backgroundColor: '#f5f5f5'

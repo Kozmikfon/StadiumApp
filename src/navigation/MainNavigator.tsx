@@ -3,8 +3,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from '../screens/login/SplashScreen';
 import HomeScreen from '../screens/HomeScreen';
-import LoginScreen from '../screens/login/LoginScreen'; // Birazdan yazacağız
-
+import LoginScreen from '../screens/login/LoginScreen';
+import PlayerPanelScreen from '../screens/panels/PlayerPanelScreen'; // Eklenmeli
+import UserPanelScreen from '../screens/panels/UserPanelScreen';     // Eklenmeli
 
 const Stack = createNativeStackNavigator();
 
@@ -15,7 +16,8 @@ const MainNavigator = () => {
                 <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Login" component={LoginScreen} />
-          
+                <Stack.Screen name="PlayerPanel" component={PlayerPanelScreen} />
+                <Stack.Screen name="UserPanel" component={UserPanelScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
