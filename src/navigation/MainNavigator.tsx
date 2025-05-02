@@ -1,18 +1,24 @@
 import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import SplashScreen from '../screens/login/SplashScreen';
 import HomeScreen from '../screens/HomeScreen';
-import PlayerListScreen from '../screens/PlayerListScreen';
-import { RootStackParamList } from '..//navigation/props/types'; // Ekran tiplerini içe aktarıyoruz
+import LoginScreen from '../screens/login/LoginScreen'; // Birazdan yazacağız
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const Stack = createNativeStackNavigator();
 
 const MainNavigator = () => {
-  return (
-    <Stack.Navigator initialRouteName="Home">
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="PlayerList" component={PlayerListScreen} />
-    </Stack.Navigator>
-  );
+    return (
+        <NavigationContainer>
+            <Stack.Navigator initialRouteName="Splash">
+                <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Login" component={LoginScreen} />
+          
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
 };
 
 export default MainNavigator;

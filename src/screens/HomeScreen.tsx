@@ -1,138 +1,150 @@
-import React from "react";
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, FlatList } from "react-native";
-import LinearGradient from "react-native-linear-gradient";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navigation/props/types";
+import React from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, TextInput, ScrollView, Dimensions } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
-type Props = NativeStackScreenProps<RootStackParamList, "Home">;
+const screenWidth = Dimensions.get('window').width;
 
-const HomeScreen = ({ navigation }: Props) => {
+const HomeScreen = ({ navigation }: any) => {
 
-  // Şimdilik sabit veri. İleride API'den çekeceğiz.
-  const upcomingMatches = [
-    { id: '1', title: 'Zaptolmazlar vs Sarsılmazlar', date: '05 Mayıs 2025' },
-    { id: '2', title: 'SivasBelediye vs Kartallar', date: '12 Mayıs 2025' },
+  const sliderData = [
+    { id: '1', title: 'Haftanın Maçı: Zaptolmazlar vs Sarsılmazlar' },
+    { id: '2', title: 'Haftanın Oyuncusu: Ali Yılmaz - Forvet' },
   ];
 
   function alert(arg0: string): void {
-    throw new Error("Function not implemented.");
+    throw new Error('Function not implemented.');
   }
 
   return (
-    <>
-      <LinearGradient colors={["#2E7D32", "#4CAF50"]} style={styles.header}>
-        <Text style={styles.headerText}>Hoş Geldin!</Text>
-        <Text style={styles.dateText}>Bugün: 1 Mayıs 2025</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Banner */}
+      <LinearGradient colors={['#0a2a6c', '#3a7bd5', '#00d2ff']} style={styles.banner}>
+        <Text style={styles.bannerTitle}>🏟️ Stadyum</Text>
+        <Image
+          source={{ uri: 'https://yandex-images.clstorage.net/1vR00W318/f09e04573WNY/KW-lPf-shwREMXRGzDUU3agFkzUo7mPowncusIpKJIdeeOMh4zbXdKmNeUQxgkgjhbKuozb5ilfpG0H_qqgXrX07YUn-KcLQRZQ0xvxlNQh8NILwiKuyTOey6iUfP7TnCMt0RsR1MOKen05WlWdt1uBzfzZTXDu2nT3nToxcERrorSRemywFVdAgRHV-1zUrCfcRMTtpoljW4IlRvUqBkrnJJ8TF1BJSvowN1mYX38fiQilncUzdRS5dBxvvHEC4urw3f5p_VBezkWaWjpREy5r0wtFZ2KOYxfKLkk1LI6E4qFalVqZzQ6w8LjamJG60MKOJtLN8jkWeTWerr-0i6IpMxs76DwYH8nH05401VPmJ5xADm2gziBVACIKfqhGgyYhkNvU0Y2Afrn3mtMf9RJERyYbBnlxU7kylqD38cshKj9Z96xwUZyJDhKSNdHTLytdi4klZ8hvXUrhRvegwYpkoxTR1dGDjPW4tpxQn3DQAgcs2IL2-9l0sJjuMv6OoyMz0PKpfJDXz0AcFb1fH6dhl0IGLGMEIFZMaY53LwaIre-QFxuawoI48X4fkx8w0ISJpVpMMD5VODrSrzV_w-hjtJp9oTEcW8aCGN6xXFRtrZlLgyJlhSBeDGCEtmEFSu6sk9AVUc1F-f0wHJ9c_1eNguEbAzM0W_v0Uii_MAOlq_SbsKY1E5iKCVoQ-FBQJiKfQw6q5omkkg0tij8sAcRsZ9tR25tJB_58MZ1bWbxejcJlU0g2fFl5PJgqsLwDoSK9GzckdFYYQcnSmHrW0SyvU8xNYi0JZljE6cz978rK7uhZ2J9YjQ54_j5SE5Rwl0TBqhRMevNUu31ZITI4jKajuNO9oPLTHYEF2xa8GZfrpdyESiAoQOBbRuKCfWqCSy4v1xXV2U7NdPlzXF_dPBDOwOvRC3c_V730Uqx080isaHWZcmbwFtyIzRMWOFQeK2jfR8aoY0kpFEtpwI' }}
+          style={styles.bannerImage}
+        />
       </LinearGradient>
 
-      <View style={styles.cardsContainer}>
-        <TouchableOpacity style={styles.card} onPress={() => alert('Maçlar yakında')}>
-          <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/889/889442.png' }} style={styles.icon} />
-          <Text style={styles.cardText}>Maçlar</Text>
+      {/* Grid Kartlar */}
+      <View style={styles.gridRow}>
+        <TouchableOpacity style={styles.gridItem} onPress={() => alert('Maçlar')}>
+          <Text style={styles.gridIcon}>🗓️</Text>
+          <Text style={styles.gridText}>Maçlar</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card} onPress={() => alert('Takımlar yakında')}>
-          <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/847/847969.png' }} style={styles.icon} />
-          <Text style={styles.cardText}>Takımlar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PlayerList')}>
-          <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/847/847842.png' }} style={styles.icon} />
-          <Text style={styles.cardText}>Oyuncular</Text>
+        <TouchableOpacity style={styles.gridItem} onPress={() => alert('Takımlar')}>
+          <Text style={styles.gridIcon}>🏆</Text>
+          <Text style={styles.gridText}>Takımlar</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Yaklaşan Maçlar</Text>
-        <FlatList
-          data={upcomingMatches}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.matchCard}>
-              <Text style={styles.matchTitle}>{item.title}</Text>
-              <Text style={styles.matchDate}>{item.date}</Text>
-            </View>
-          )}
+      <View style={styles.gridRow}>
+        <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('PlayerList')}>
+          <Text style={styles.gridIcon}>👥</Text>
+          <Text style={styles.gridText}>Oyuncular</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.gridItem} onPress={() => alert('Sahalar')}>
+          <Text style={styles.gridIcon}>🏟️</Text>
+          <Text style={styles.gridText}>Sahalar</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Maç Ara */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Maç Ara..."
+          style={styles.searchInput}
         />
       </View>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.sectionTitle}>🏅 Haftanın Maçı</Text>
-        <Text>Zaptolmazlar vs Sarsılmazlar</Text>
-      </View>
+      {/* Slider - Haftanın Maçı / Oyuncusu */}
+      <Text style={styles.sliderTitle}>📢 Haftanın Öne Çıkanları</Text>
+      <FlatList
+        horizontal
+        data={sliderData}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.sliderItem}>
+            <Text style={styles.sliderText}>{item.title}</Text>
+          </View>
+        )}
+        showsHorizontalScrollIndicator={false}
+      />
 
-      <View style={styles.infoCard}>
-        <Text style={styles.sectionTitle}>🌟 Haftanın Oyuncusu</Text>
-        <Text>Ali Yılmaz - Forvet</Text>
-      </View>
-    </>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  header: {
+  container: {
+    paddingBottom: 20,
+    backgroundColor: '#f5f5f5'
+  },
+  banner: {
     padding: 20,
-    paddingTop: 40,
+    alignItems: 'center',
   },
-  headerText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "white",
-  },
-  dateText: {
-    fontSize: 14,
-    color: "white",
-  },
-  cardsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 20,
-  },
-  card: {
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 10,
-    alignItems: "center",
-    width: 100,
-    elevation: 3,
-  },
-  icon: {
-    width: 40,
-    height: 40,
-    marginBottom: 5,
-  },
-  cardText: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  section: {
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+  bannerTitle: {
+    fontSize: 26,
+    color: 'white',
+    fontWeight: 'bold',
     marginBottom: 10,
   },
-  matchCard: {
-    backgroundColor: "#fff",
-    padding: 12,
+  bannerImage: {
+    width: screenWidth - 40,
+    height: 200,
     borderRadius: 10,
-    marginBottom: 8,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 15,
+  },
+  gridItem: {
+    backgroundColor: '#fff',
+    width: screenWidth / 2 - 30,
+    height: 100,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+  gridIcon: {
+    fontSize: 30,
+  },
+  gridText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 5,
+  },
+  searchContainer: {
+    marginHorizontal: 20,
+    marginVertical: 15,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 15,
     elevation: 2,
   },
-  matchTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+  searchInput: {
+    height: 40,
   },
-  matchDate: {
-    color: "#555",
+  sliderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 15,
+    marginBottom: 10,
   },
-  infoCard: {
-    backgroundColor: "#fff",
+  sliderItem: {
+    backgroundColor: '#fff',
+    width: screenWidth - 60,
     padding: 15,
-    margin: 10,
     borderRadius: 10,
-    elevation: 3,
+    marginHorizontal: 10,
+    elevation: 2,
+  },
+  sliderText: {
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 
