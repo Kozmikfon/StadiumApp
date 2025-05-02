@@ -75,9 +75,9 @@ function App(): React.JSX.Element {
   const safePadding = '5%';
 
   return (
-    <NavigationContainer>
+    
       <MainNavigator/>
-    </NavigationContainer>
+
   );
 }
 
