@@ -58,6 +58,10 @@ const LoginScreen = ({ navigation }: any) => {
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>Giriş Yap</Text>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                 <Text style={{ marginTop: 15, color: '#1976D2' }}>Hesabınız yok mu? Kayıt olun.</Text>
+            </TouchableOpacity>
+
         </View>
     );
 };
