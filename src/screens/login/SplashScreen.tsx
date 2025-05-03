@@ -12,7 +12,7 @@ const SplashScreen = ({ navigation }: any) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>🏟️ StadyumApp</Text>
+            <Text style={styles.title}>🏟️ Stadyum</Text>
             <ActivityIndicator size="large" color="#4CAF50" />
         </View>
     );
