@@ -13,14 +13,16 @@ const LoginScreen = ({ navigation }: any) => {
         }
 
         try {
-            const response = await axios.post('http://localhost:5275/api/Auth/login', {
+            const response = await axios.post('http://10.0.2.2:5275/api/Auth/login', {
                 email,
                 password
             });
+            
 
             // Burada backend'den dönen rolü kontrol edelim:
-            const { role } = response.data;
-
+            const { role , Token} = response.data;
+            console.log("Gelen Rol:", role);
+            console.log("Gelen Token:", Token);
             if (role === 'Player') {
                 navigation.replace('PlayerPanel');
             } else if (role === 'User') {
