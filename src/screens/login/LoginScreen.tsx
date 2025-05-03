@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = ({ navigation }: any) => {
     const [email, setEmail] = useState('');
@@ -11,18 +12,18 @@ const LoginScreen = ({ navigation }: any) => {
             Alert.alert('Hata', 'Lütfen email ve şifre girin.');
             return;
         }
-
+    
         try {
             const response = await axios.post('http://10.0.2.2:5275/api/Auth/login', {
                 email,
                 password
             });
-            
-
-            // Burada backend'den dönen rolü kontrol edelim:
-            const { role , Token} = response.data;
-            console.log("Gelen Rol:", role);
-            console.log("Gelen Token:", Token);
+    
+            // Token'ı kaydet!
+            await AsyncStorage.setItem('token', response.data.token);
+    
+            const { role } = response.data;
+    
             if (role === 'Player') {
                 navigation.replace('PlayerPanel');
             } else if (role === 'User') {
@@ -35,6 +36,7 @@ const LoginScreen = ({ navigation }: any) => {
             Alert.alert('Giriş Başarısız', 'Email veya şifre hatalı.');
         }
     };
+    
 
     return (
         <View style={styles.container}>
