@@ -12,18 +12,23 @@ const LoginScreen = ({ navigation }: any) => {
             Alert.alert('Hata', 'Lütfen email ve şifre girin.');
             return;
         }
-    
+
         try {
             const response = await axios.post('http://10.0.2.2:5275/api/Auth/login', {
                 email,
                 password
             });
-    
-            // Token'ı kaydet!
-            await AsyncStorage.setItem('token', response.data.token);
-    
-            const { role } = response.data;
-    
+
+            // 🔥 Token'ı kaydet!
+            const token = response.data.token;
+            const role = response.data.role;
+
+            console.log('✅ Alınan Token:', token);
+            console.log('✅ Alınan Rol:', role);
+
+            await AsyncStorage.setItem('token', token);
+
+            // Rol kontrolü ve yönlendirme
             if (role === 'Player') {
                 navigation.replace('PlayerPanel');
             } else if (role === 'User') {
@@ -32,11 +37,10 @@ const LoginScreen = ({ navigation }: any) => {
                 Alert.alert('Hata', 'Bilinmeyen rol.');
             }
         } catch (error: any) {
-            console.error(error);
-            Alert.alert('Giriş Başarısız', 'Email veya şifre hatalı.');
+            console.error('❌ Giriş hatası:', error);
+            Alert.alert('Giriş Başarısız', 'Email veya şifre hatalı ya da ağ hatası.');
         }
     };
-    
 
     return (
         <View style={styles.container}>
@@ -60,10 +64,12 @@ const LoginScreen = ({ navigation }: any) => {
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>Giriş Yap</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                 <Text style={{ marginTop: 15, color: '#1976D2' }}>Hesabınız yok mu? Kayıt olun.</Text>
-            </TouchableOpacity>
 
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                <Text style={{ marginTop: 15, color: '#1976D2' }}>
+                    Hesabınız yok mu? Kayıt olun.
+                </Text>
+            </TouchableOpacity>
         </View>
     );
 };

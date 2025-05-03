@@ -5,7 +5,7 @@ import SplashScreen from '../screens/login/SplashScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/login/LoginScreen';
 import PlayerPanelScreen from '../screens/panels/PlayerPanelScreen'; // Eklenmeli
-import UserPanelScreen from '../screens/panels/UserPanelScreen';     // Eklenmeli
+import UserPanelScreen from '../screens/userPanel/UserPanelScreen';     // Eklenmeli
 import CompletePlayerProfile from '../screens/playerPanel/CompletePlayerProfile';
 import RegisterScreen from '../screens/login/RegisterScreen';
 

@@ -7,30 +7,34 @@ import { jwtDecode } from 'jwt-decode';
 const UserPanel = () => {
     const [userData, setUserData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
+        console.log('🟢 useEffect çalıştı!');
         const fetchUserData = async () => {
             try {
+                // 1️⃣ TOKEN'I OKU
                 const token = await AsyncStorage.getItem('token');
+                console.log('📌 Okunan token:', token);
+
                 if (!token) {
                     throw new Error('Token bulunamadı');
                 }
 
-                // Token çözülüyor
+                // 2️⃣ TOKEN'DAN userId AL
                 const decoded: any = jwtDecode(token);
-                console.log('Çözülen JWT:', decoded);  // LOG 1
+                console.log('📌 Decoded Token:', decoded);
+
                 const userId = decoded.userId;
+                console.log('📌 UserID:', userId);
 
-                const url = `http://10.0.2.2:5275/api/Users/${userId}`;
-                console.log('API isteği URL:', url);  // LOG 2
+                // 3️⃣ BACKEND'DEN USER BİLGİLERİNİ ÇEK
+                const response = await axios.get(`http://10.0.2.2:5275/api/Users/${userId}`);
+                console.log('📌 Kullanıcı verisi:', response.data);
 
-                const response = await axios.get(url);
                 setUserData(response.data);
 
-            } catch (error: any) {
-                console.error('Kullanıcı verisi alınamadı:', error);
-                setErrorMessage('Kullanıcı bilgisi alınamadı. Lütfen tekrar giriş yapın.');
+            } catch (error) {
+                console.error('❌ Kullanıcı verisi alınamadı:', error);
             } finally {
                 setLoading(false);
             }
@@ -43,12 +47,8 @@ const UserPanel = () => {
         return <ActivityIndicator size="large" color="#2E7D32" />;
     }
 
-    if (errorMessage) {
-        return <Text style={{ color: 'red' }}>{errorMessage}</Text>;
-    }
-
     if (!userData) {
-        return <Text>Kullanıcı bilgisi bulunamadı.</Text>;
+        return <Text>❗ Kullanıcı bilgisi bulunamadı.</Text>;
     }
 
     return (
@@ -56,9 +56,9 @@ const UserPanel = () => {
             <Text style={styles.title}>👤 Kullanıcı Bilgileri</Text>
             <Text>Ad Soyad: {userData.firstName} {userData.lastName}</Text>
             <Text>Email: {userData.email}</Text>
-            <Text>Pozisyon: {userData.position}</Text>
-            <Text>Skill Level: {userData.skillLevel}</Text>
-            <Text>Rating: {userData.rating}</Text>
+            <Text>Pozisyon: {userData.position || 'Belirtilmemiş'}</Text>
+            <Text>Skill Level: {userData.skillLevel || 'Belirtilmemiş'}</Text>
+            <Text>Rating: {userData.rating || 'Belirtilmemiş'}</Text>
         </View>
     );
 };
