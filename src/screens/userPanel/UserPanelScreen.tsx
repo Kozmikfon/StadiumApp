@@ -1,54 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
-const UserPanel = () => {
+const UserPanel = ({ navigation }: any) => {
     const [userData, setUserData] = useState<any>(null);
+    const [playerData, setPlayerData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        console.log('🟢 useEffect çalıştı!');
-        const fetchUserData = async () => {
+        const fetchData = async () => {
             try {
-                // 1️⃣ TOKEN'I OKU
                 const token = await AsyncStorage.getItem('token');
-                console.log('📌 Okunan token:', token);
+                if (!token) throw new Error('Token bulunamadı');
 
-                if (!token) {
-                    throw new Error('Token bulunamadı');
-                }
-
-                // 2️⃣ TOKEN'DAN userId AL
                 const decoded: any = jwtDecode(token);
-                console.log('📌 Decoded Token:', decoded);
-
                 const userId = decoded.userId;
-                console.log('📌 UserID:', userId);
 
-                // 3️⃣ BACKEND'DEN USER BİLGİLERİNİ ÇEK
-                const response = await axios.get(`http://10.0.2.2:5275/api/Users/${userId}`);
-                console.log('📌 Kullanıcı verisi:', response.data);
+                // 1️⃣ User verisi çek
+                const userResponse = await axios.get(`http://10.0.2.2:5275/api/Users/${userId}`);
+                setUserData(userResponse.data);
 
-                setUserData(response.data);
+                // 2️⃣ Player verisi çek
+                const playerResponse = await axios.get(`http://10.0.2.2:5275/api/Players`);
+                const player = playerResponse.data.find((p: any) => p.userId === userId);
+                setPlayerData(player || null);
 
             } catch (error) {
-                console.error('❌ Kullanıcı verisi alınamadı:', error);
+                console.error('❌ Veriler alınamadı:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchUserData();
+        fetchData();
     }, []);
 
     if (loading) {
         return <ActivityIndicator size="large" color="#2E7D32" />;
-    }
-
-    if (!userData) {
-        return <Text>❗ Kullanıcı bilgisi bulunamadı.</Text>;
     }
 
     return (
@@ -56,9 +46,25 @@ const UserPanel = () => {
             <Text style={styles.title}>👤 Kullanıcı Bilgileri</Text>
             <Text>Ad Soyad: {userData.firstName} {userData.lastName}</Text>
             <Text>Email: {userData.email}</Text>
-            <Text>Pozisyon: {userData.position || 'Belirtilmemiş'}</Text>
-            <Text>Skill Level: {userData.skillLevel || 'Belirtilmemiş'}</Text>
-            <Text>Rating: {userData.rating || 'Belirtilmemiş'}</Text>
+
+            {playerData ? (
+                <>
+                    <Text style={{ marginTop: 20, fontWeight: 'bold' }}>⚽ Oyuncu Bilgileri</Text>
+                    <Text>Pozisyon: {playerData.position}</Text>
+                    <Text>Skill Level: {playerData.skillLevel}</Text>
+                    <Text>Rating: {playerData.rating}</Text>
+                    <TouchableOpacity style={styles.button} onPress={() => navigation.replace('PlayerPanel')}>
+                        <Text style={styles.buttonText}>Player Paneline Geç</Text>
+                    </TouchableOpacity>
+                </>
+            ) : (
+                <>
+                    <Text style={{ marginTop: 20, color: 'gray' }}>Henüz oyuncu profiliniz yok.</Text>
+                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CompletePlayerProfile')}>
+                        <Text style={styles.buttonText}>Oyuncu Profilini Tamamla</Text>
+                    </TouchableOpacity>
+                </>
+            )}
         </View>
     );
 };
@@ -74,6 +80,17 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         marginBottom: 20
+    },
+    button: {
+        marginTop: 20,
+        backgroundColor: '#2E7D32',
+        paddingVertical: 10,
+        paddingHorizontal: 30,
+        borderRadius: 8
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 16
     }
 });
 

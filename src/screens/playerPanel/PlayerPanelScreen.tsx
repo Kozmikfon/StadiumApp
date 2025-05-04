@@ -4,16 +4,16 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
-const PlayerPanel = () => {
+const PlayerPanelScreen = () => {
     const [playerData, setPlayerData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchPlayerData = async () => {
             try {
-                // 1️⃣ TOKEN'I OKU
+                // 1️⃣ TOKEN'I AL
                 const token = await AsyncStorage.getItem('token');
-                console.log('✅ Okunan token:', token);
+                console.log('📌 Okunan token:', token);
 
                 if (!token) {
                     throw new Error('Token bulunamadı');
@@ -21,26 +21,19 @@ const PlayerPanel = () => {
 
                 // 2️⃣ TOKEN'DAN userId AL
                 const decoded: any = jwtDecode(token);
-                console.log('✅ Decoded Token:', decoded);
+                console.log('📌 Decoded Token:', decoded);
 
                 const userId = decoded.userId;
-                console.log('✅ UserID:', userId);
+                console.log('📌 UserID:', userId);
 
                 // 3️⃣ BACKEND'DEN PLAYER BİLGİLERİNİ ÇEK
-                const response = await axios.get(`http://10.0.2.2:5275/api/Players`);
-                console.log('✅ Gelen oyuncular:', response.data);
+                const response = await axios.get(`http://10.0.2.2:5275/api/Players/user/${userId}`);
+                console.log('📌 Oyuncu verisi:', response.data);
 
-                // 4️⃣ UserId'ye göre ilgili player'ı bul
-                const player = response.data.find((p: any) => p.userId === parseInt(userId));
-
-                if (!player) {
-                    console.log('❌ Bu kullanıcıya bağlı bir Player bulunamadı.');
-                }
-
-                setPlayerData(player);
+                setPlayerData(response.data);
 
             } catch (error) {
-                console.error('❌ Player verisi alınamadı:', error);
+                console.error('❌ Oyuncu verisi alınamadı:', error);
             } finally {
                 setLoading(false);
             }
@@ -54,7 +47,7 @@ const PlayerPanel = () => {
     }
 
     if (!playerData) {
-        return <Text>❗ Bu kullanıcıya bağlı oyuncu bulunamadı.</Text>;
+        return <Text>❗ Oyuncu bilgisi bulunamadı.</Text>;
     }
 
     return (
@@ -65,7 +58,7 @@ const PlayerPanel = () => {
             <Text>Pozisyon: {playerData.position}</Text>
             <Text>Skill Level: {playerData.skillLevel}</Text>
             <Text>Rating: {playerData.rating}</Text>
-            <Text>Takım ID: {playerData.teamId ? playerData.teamId : 'Takım yok'}</Text>
+            <Text>Takım: {playerData.teamName || 'Henüz takım yok'}</Text>
         </View>
     );
 };
@@ -84,4 +77,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default PlayerPanel;
+export default PlayerPanelScreen;
