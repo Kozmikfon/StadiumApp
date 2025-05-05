@@ -11,25 +11,13 @@ const PlayerPanel = () => {
     useEffect(() => {
         const fetchPlayerData = async () => {
             try {
-                // 1️⃣ TOKEN'I OKU
                 const token = await AsyncStorage.getItem('token');
-                console.log('📌 Okunan token:', token);
+                if (!token) throw new Error('Token bulunamadı');
 
-                if (!token) {
-                    throw new Error('Token bulunamadı');
-                }
-
-                // 2️⃣ TOKEN'DAN userId AL
                 const decoded: any = jwtDecode(token);
-                console.log('📌 Decoded Token:', decoded);
-
                 const userId = decoded.userId;
-                console.log('📌 UserID:', userId);
 
-                // 3️⃣ BACKEND'DEN PLAYER BİLGİLERİNİ ÇEK
                 const response = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
-                console.log('📌 Oyuncu verisi:', response.data);
-
                 setPlayerData(response.data);
 
             } catch (error) {
@@ -50,6 +38,9 @@ const PlayerPanel = () => {
         return <Text>❗ Oyuncu bilgisi bulunamadı.</Text>;
     }
 
+    // Tarihi daha okunabilir formata çevirelim:
+    const formattedDate = new Date(playerData.createAd).toLocaleDateString('tr-TR');
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>⚽ Oyuncu Bilgileri</Text>
@@ -58,6 +49,8 @@ const PlayerPanel = () => {
             <Text>Pozisyon: {playerData.position}</Text>
             <Text>Skill Level: {playerData.skillLevel}</Text>
             <Text>Rating: {playerData.rating}</Text>
+            <Text>Kayıt Tarihi: {formattedDate}</Text>
+            <Text>Takım: {playerData.teamName ? playerData.teamName : "Takımsız"}</Text>
         </View>
     );
 };
