@@ -18,6 +18,7 @@ const LoginScreen = ({ navigation }: any) => {
                 email,
                 password
             });
+            navigation.replace('Main');
 
             // 🔥 Token'ı kaydet!
             const token = response.data.token;

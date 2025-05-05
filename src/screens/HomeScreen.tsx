@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, TextInput, ScrollView, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ScrollView, Dimensions, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -12,29 +12,51 @@ const HomeScreen = ({ navigation }: any) => {
     { id: '2', title: 'Haftanın Oyuncusu: Ali Yılmaz - Forvet' },
   ];
 
-  function alert(arg0: string): void {
-    throw new Error('Function not implemented.');
-  }
+  // 👤 Profil menüsünü aç/kapat kontrolü
+  const [showProfile, setShowProfile] = useState(false);
+
+  // Çıkış fonksiyonu
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('token');
+    navigation.replace('Login');
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+
+      {/* NAVBAR */}
+      <View style={styles.navbar}>
+        <Text style={styles.navbarTitle}>🏟️ Stadyum</Text>
+        <TouchableOpacity onPress={() => setShowProfile(!showProfile)}>
+          <Text style={styles.profileIcon}>👤</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Profil Menüsü */}
+      {showProfile && (
+        <View style={styles.profileMenu}>
+          <Text style={styles.profileText}>Ad: Ali Yılmaz</Text>
+          <Text style={styles.profileText}>Email: ali@example.com</Text>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutText}>🔓 Çıkış Yap</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Banner */}
       <LinearGradient colors={['#0a2a6c', '#3a7bd5', '#00d2ff']} style={styles.banner}>
-        <Text style={styles.bannerTitle}>🏟️ Stadyum</Text>
         <Image
-          source={{ uri: 'https://yandex-images.clstorage.net/1vR00W318/f09e04573WNY/KW-lPf-shwREMXRGzDUU3agFkzUo7mPowncusIpKJIdeeOMh4zbXdKmNeUQxgkgjhbKuozb5ilfpG0H_qqgXrX07YUn-KcLQRZQ0xvxlNQh8NILwiKuyTOey6iUfP7TnCMt0RsR1MOKen05WlWdt1uBzfzZTXDu2nT3nToxcERrorSRemywFVdAgRHV-1zUrCfcRMTtpoljW4IlRvUqBkrnJJ8TF1BJSvowN1mYX38fiQilncUzdRS5dBxvvHEC4urw3f5p_VBezkWaWjpREy5r0wtFZ2KOYxfKLkk1LI6E4qFalVqZzQ6w8LjamJG60MKOJtLN8jkWeTWerr-0i6IpMxs76DwYH8nH05401VPmJ5xADm2gziBVACIKfqhGgyYhkNvU0Y2Afrn3mtMf9RJERyYbBnlxU7kylqD38cshKj9Z96xwUZyJDhKSNdHTLytdi4klZ8hvXUrhRvegwYpkoxTR1dGDjPW4tpxQn3DQAgcs2IL2-9l0sJjuMv6OoyMz0PKpfJDXz0AcFb1fH6dhl0IGLGMEIFZMaY53LwaIre-QFxuawoI48X4fkx8w0ISJpVpMMD5VODrSrzV_w-hjtJp9oTEcW8aCGN6xXFRtrZlLgyJlhSBeDGCEtmEFSu6sk9AVUc1F-f0wHJ9c_1eNguEbAzM0W_v0Uii_MAOlq_SbsKY1E5iKCVoQ-FBQJiKfQw6q5omkkg0tij8sAcRsZ9tR25tJB_58MZ1bWbxejcJlU0g2fFl5PJgqsLwDoSK9GzckdFYYQcnSmHrW0SyvU8xNYi0JZljE6cz978rK7uhZ2J9YjQ54_j5SE5Rwl0TBqhRMevNUu31ZITI4jKajuNO9oPLTHYEF2xa8GZfrpdyESiAoQOBbRuKCfWqCSy4v1xXV2U7NdPlzXF_dPBDOwOvRC3c_V730Uqx080isaHWZcmbwFtyIzRMWOFQeK2jfR8aoY0kpFEtpwI' }}
+          source={{ uri: 'https://yandex-images.clstorage.net/1vR00W318/f09e04573WNY/...' }}
           style={styles.bannerImage}
         />
       </LinearGradient>
 
       {/* Grid Kartlar */}
       <View style={styles.gridRow}>
-
-      <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.gridIcon}>🗓️</Text>
-        <Text style={styles.gridText}>Maçlar</Text>
-      </TouchableOpacity>
-
+        <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('MatchList')}>
+          <Text style={styles.gridIcon}>🗓️</Text>
+          <Text style={styles.gridText}>Maçlar</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('TeamList')}>
           <Text style={styles.gridIcon}>🏆</Text>
@@ -47,7 +69,7 @@ const HomeScreen = ({ navigation }: any) => {
           <Text style={styles.gridIcon}>👥</Text>
           <Text style={styles.gridText}>Oyuncular</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.gridItem} onPress={() => alert('Sahalar')}>
+        <TouchableOpacity style={styles.gridItem} onPress={() => Alert.alert('Sahalar')}>
           <Text style={styles.gridIcon}>🏟️</Text>
           <Text style={styles.gridText}>Sahalar</Text>
         </TouchableOpacity>
@@ -56,16 +78,28 @@ const HomeScreen = ({ navigation }: any) => {
       {/* Maç Ara */}
       <Text style={styles.sliderTitle}>⚽ Maç Seçenekleri</Text>
 <View style={styles.buttonRow}>
-    <TouchableOpacity style={styles.searchButton} onPress={() => alert('Bugünkü Maçlar')}>
-        <Text style={styles.buttonText}>🏟️ Bugünkü Maçlar</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.searchButton} onPress={() => alert('Haftalık Maçlar')}>
-        <Text style={styles.buttonText}>📅 Haftalık Maçlar</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.searchButton} onPress={() => alert('Tüm Maçlar')}>
-        <Text style={styles.buttonText}>🔎 Tüm Maçlar</Text>
-    </TouchableOpacity>
+  <TouchableOpacity
+    style={styles.searchButton}
+    onPress={() => navigation.navigate('MatchList', { filter: 'today' })} // Bugünkü maçlar
+  >
+    <Text style={styles.buttonText}>🏟️ Bugünkü Maçlar</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={styles.searchButton}
+    onPress={() => navigation.navigate('MatchList', { filter: 'week' })} // Haftalık maçlar
+  >
+    <Text style={styles.buttonText}>📅 Haftalık Maçlar</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={styles.searchButton}
+    onPress={() => navigation.navigate('MatchList', { filter: 'all' })} // Tüm maçlar
+  >
+    <Text style={styles.buttonText}>🔎 Tüm Maçlar</Text>
+  </TouchableOpacity>
 </View>
+
 
 
       {/* Slider - Haftanın Maçı / Oyuncusu */}
@@ -87,36 +121,56 @@ const HomeScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  buttonRow: {
-    marginHorizontal: 20,
-    marginBottom: 10,
-},
-searchButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginBottom: 10,
-    alignItems: 'center',
-},
-buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16
-},
-
   container: {
     paddingBottom: 20,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#f5f5f5',
+    
+  },
+  navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#0a2a6c',
+    marginTop: 10,
+    
+  },
+  navbarTitle: {
+    fontSize: 24,
+    color: 'white',
+    fontWeight: 'bold'
+    
+  },
+  profileIcon: {
+    fontSize: 28,
+    color: 'white'
+  },
+  profileMenu: {
+    backgroundColor: '#ffffff',
+    padding: 15,
+    margin: 10,
+    borderRadius: 8,
+    elevation: 2
+  },
+  profileText: {
+    fontSize: 16,
+    marginBottom: 5
+  },
+  logoutButton: {
+    marginTop: 10,
+    backgroundColor: '#c62828',
+    padding: 10,
+    borderRadius: 6,
+    alignItems: 'center'
+  },
+  logoutText: {
+    color: 'white',
+    fontWeight: 'bold'
   },
   banner: {
     padding: 20,
     alignItems: 'center',
-  },
-  bannerTitle: {
-    fontSize: 26,
-    color: 'white',
-    fontWeight: 'bold',
-    marginBottom: 10,
   },
   bannerImage: {
     width: screenWidth - 40,
@@ -145,16 +199,21 @@ buttonText: {
     fontWeight: '600',
     marginTop: 5,
   },
-  searchContainer: {
+  buttonRow: {
     marginHorizontal: 20,
-    marginVertical: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    elevation: 2,
+    marginBottom: 10,
   },
-  searchInput: {
-    height: 40,
+  searchButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16
   },
   sliderTitle: {
     fontSize: 18,

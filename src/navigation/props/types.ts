@@ -8,7 +8,9 @@ export type RootStackParamList = {
   UserPanel: undefined;
   Splash: undefined;
   TeamList: undefined;
-  //TeamDetail: undefined; // Detay ekranı için uygun bileşeni ekleyin
+  TeamDetail: undefined;
+  MatchList: undefined;
+  
 
   
   
