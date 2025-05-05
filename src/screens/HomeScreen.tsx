@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ScrollView, Dimensions, Alert, Modal } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {jwtDecode} from 'jwt-decode';
-
+import { jwtDecode } from 'jwt-decode';
+import axios from 'axios'; // ⭐ Bunu unutma!
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -19,6 +19,11 @@ const HomeScreen = ({ navigation }: any) => {
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('');
 
+    // Player futbol bilgileri:
+    const [position, setPosition] = useState('');
+    const [skillLevel, setSkillLevel] = useState<number | null>(null);
+    const [rating, setRating] = useState<number | null>(null);
+
     // JWT'den bilgileri çekelim:
     useEffect(() => {
         const getUserInfo = async () => {
@@ -29,6 +34,19 @@ const HomeScreen = ({ navigation }: any) => {
                 setUserName(decoded.firstName + ' ' + decoded.lastName);
                 setEmail(decoded.sub);
                 setRole(decoded.role);
+
+                // Eğer oyuncuysa futbol bilgilerini çek
+                if (decoded.role === 'Player') {
+                    try {
+                        const response = await axios.get(`http://10.0.2.2:5275/api/Players/${decoded.userId}`);
+                        const player = response.data;
+                        setPosition(player.position);
+                        setSkillLevel(player.skillLevel);
+                        setRating(player.rating);
+                    } catch (error) {
+                        console.error('❌ Oyuncu bilgileri çekilemedi:', error);
+                    }
+                }
             }
         };
 
@@ -140,6 +158,14 @@ const HomeScreen = ({ navigation }: any) => {
                         <Text>Email: {email}</Text>
                         <Text>Rol: {role}</Text>
 
+                        {role === 'Player' && (
+                            <>
+                                <Text>Pozisyon: {position}</Text>
+                                <Text>Seviye: {skillLevel}</Text>
+                                <Text>Rating: {rating}</Text>
+                            </>
+                        )}
+
                         <TouchableOpacity
                             style={styles.logoutButtons}
                             onPress={handleLogout}
@@ -157,121 +183,123 @@ const HomeScreen = ({ navigation }: any) => {
         </ScrollView>
     );
 };
+
+// Styles (aynı kalabilir senin öncekilerle)
 const styles = StyleSheet.create({
-  container: {
-      paddingBottom: 20,
-      backgroundColor: '#f5f5f5',
-  },
-  navbar: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      backgroundColor: '#0a2a6c',
-      marginTop: 10,
-  },
-  navbarTitle: {
-      fontSize: 24,
-      color: 'white',
-      fontWeight: 'bold',
-  },
-  profileButton: {
-      backgroundColor: '#1976D2',
-      padding: 8,
-      borderRadius: 20,
-  },
-  banner: {
-      padding: 20,
-      alignItems: 'center',
-  },
-  bannerImage: {
-      width: screenWidth - 40,
-      height: 200,
-      borderRadius: 10,
-  },
-  gridRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginTop: 15,
-  },
-  gridItem: {
-      backgroundColor: '#fff',
-      width: screenWidth / 2 - 30,
-      height: 100,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
-      elevation: 3,
-  },
-  gridIcon: {
-      fontSize: 30,
-  },
-  gridText: {
-      fontSize: 16,
-      fontWeight: '600',
-      marginTop: 5,
-  },
-  buttonRow: {
-      marginHorizontal: 20,
-      marginBottom: 10,
-  },
-  searchButton: {
-      backgroundColor: '#4CAF50',
-      paddingVertical: 12,
-      borderRadius: 10,
-      marginBottom: 10,
-      alignItems: 'center',
-  },
-  buttonText: {
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 16,
-  },
-  sliderTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginLeft: 15,
-      marginBottom: 10,
-  },
-  sliderItem: {
-      backgroundColor: '#fff',
-      width: screenWidth - 60,
-      padding: 15,
-      borderRadius: 10,
-      marginHorizontal: 10,
-      elevation: 2,
-  },
-  sliderText: {
-      fontSize: 16,
-      fontWeight: '500',
-  },
-  modalContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-      backgroundColor: 'white',
-      padding: 20,
-      borderRadius: 10,
-      width: '80%',
-      alignItems: 'center',
-  },
-  modalTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 10,
-  },
-  logoutButtons: {
-      marginTop: 10,
-      backgroundColor: '#c62828',
-      padding: 10,
-      borderRadius: 6,
-      alignItems: 'center',
-      width: '100%',
-  },
+    container: {
+        paddingBottom: 20,
+        backgroundColor: '#f5f5f5',
+    },
+    navbar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        backgroundColor: '#0a2a6c',
+        marginTop: 10,
+    },
+    navbarTitle: {
+        fontSize: 24,
+        color: 'white',
+        fontWeight: 'bold',
+    },
+    profileButton: {
+        backgroundColor: '#1976D2',
+        padding: 8,
+        borderRadius: 20,
+    },
+    banner: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    bannerImage: {
+        width: screenWidth - 40,
+        height: 200,
+        borderRadius: 10,
+    },
+    gridRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 15,
+    },
+    gridItem: {
+        backgroundColor: '#fff',
+        width: screenWidth / 2 - 30,
+        height: 100,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 3,
+    },
+    gridIcon: {
+        fontSize: 30,
+    },
+    gridText: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginTop: 5,
+    },
+    buttonRow: {
+        marginHorizontal: 20,
+        marginBottom: 10,
+    },
+    searchButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 12,
+        borderRadius: 10,
+        marginBottom: 10,
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    sliderTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginLeft: 15,
+        marginBottom: 10,
+    },
+    sliderItem: {
+        backgroundColor: '#fff',
+        width: screenWidth - 60,
+        padding: 15,
+        borderRadius: 10,
+        marginHorizontal: 10,
+        elevation: 2,
+    },
+    sliderText: {
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    logoutButtons: {
+        marginTop: 10,
+        backgroundColor: '#c62828',
+        padding: 10,
+        borderRadius: 6,
+        alignItems: 'center',
+        width: '100%',
+    },
 });
 
 export default HomeScreen;
