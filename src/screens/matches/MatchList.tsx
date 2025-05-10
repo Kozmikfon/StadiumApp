@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, Button } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Button, Alert } from 'react-native';
 import axios from 'axios';
 import { useIsFocused, useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { jwtDecode } from 'jwt-decode';
 
 const MatchList = ({ navigation }: any) => {
   const route = useRoute<any>();
@@ -44,6 +46,31 @@ const MatchList = ({ navigation }: any) => {
       setLoading(false);
     }
   };
+
+  // takıma katılma
+  const handleJoin = async (teamId: number) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    const decoded: any = jwtDecode(token || '');
+    const playerId = decoded.playerId;
+
+    await axios.post('http://10.0.2.2:5275/api/TeamMembers', {
+      teamId,
+      playerId
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    Alert.alert("Başarılı", "Takıma katıldınız!");
+    navigation.replace('PlayerProfile');
+
+  } catch (error) {
+    Alert.alert("Hata", "Takıma katılamadınız.");
+    console.log(error);
+  }
+};
+
+
 
   if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 30 }} />;
