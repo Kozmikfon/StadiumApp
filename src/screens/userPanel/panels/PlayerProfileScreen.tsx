@@ -50,8 +50,13 @@ const PlayerProfileScreen = ({ navigation }: any) => {
   };
 
   const handleJoinTeam = () => {
-    navigation.navigate('TeamList', { userId });
-  };
+  if (userId) {
+    navigation.navigate('TeamList', { userId }); // TeamList'e userId gönderiliyor
+  } else {
+    Alert.alert("Hata", "Kullanıcı bilgisi alınamadı.");
+  }
+};
+
 
   if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 50 }} />;
@@ -87,19 +92,18 @@ const PlayerProfileScreen = ({ navigation }: any) => {
         <Text><Text style={styles.label}>Takım:</Text> {player.teamName || 'Takımsız'}</Text>
       </View>
 
-      {player.teamId ? (
+     {player.teamId ? (
   <>
     <Button title="Takımdan Ayrıl" color="red" onPress={handleLeaveTeam} />
-    <View style={{ marginTop: 10 }} />
-    <Button title="📅 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
   </>
 ) : (
   <>
     <Button title="Takıma Katıl" color="#2E7D32" onPress={handleJoinTeam} />
-    <View style={{ marginTop: 10 }} />
-    <Button title="📅 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
   </>
 )}
+
+<View style={{ marginTop: 10 }} />
+<Button title="📅 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
 
     </View>
   );

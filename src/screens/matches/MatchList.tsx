@@ -64,10 +64,14 @@ const MatchList = ({ navigation }: any) => {
     Alert.alert("Başarılı", "Takıma katıldınız!");
     navigation.replace('PlayerProfile');
 
-  } catch (error) {
-    Alert.alert("Hata", "Takıma katılamadınız.");
-    console.log(error);
+  } catch (error: any) {
+  if (error.response && error.response.status === 400) {
+    Alert.alert("⚠️ Uyarı", error.response.data); // Hatalıysa açık mesaj
+  } else {
+    Alert.alert("❌ Hata", "Takıma katılamadınız.");
   }
+}
+
 };
 
 

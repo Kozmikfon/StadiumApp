@@ -1,112 +1,127 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
+import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
-type Match = {
-  id: number;
-  team1Id: number;
-  team2Id: number;
-  team1Name: string;
-  team2Name: string;
-  fieldName: string;
-  matchDate: string;
-};
+const TeamList = ({ navigation }: any) => {
+    const [teams, setTeams] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const route = useRoute<any>();
+    const { userId } = route.params || {};
 
-const MyMatchesScreen = () => {
-  const [matches, setMatches] = useState<Match[]>([]);
+    useEffect(() => {
+        const fetchTeams = async () => {
+            try {
+                const response = await axios.get('http://10.0.2.2:5275/api/Teams');
+                setTeams(response.data);
+            } catch (error) {
+                console.error('❌ Takımlar alınamadı:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  const [loading, setLoading] = useState(true);
-  const [teamId, setTeamId] = useState<number | null>(null);
+        fetchTeams();
+    }, []);
 
-  useEffect(() => {
-    const fetchMatches = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) throw new Error("Token bulunamadı");
+    const handleJoin = async (teamId: number) => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const decoded: any = jwtDecode(token || '');
+            const userId = decoded.userId;
 
-        const decoded: any = jwtDecode(token);
-        const userId = decoded.userId;
+            // 🧠 playerId'yi Players/byUser/{userId} endpointinden al
+            const playerRes = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
+            const playerId = playerRes.data.id;
 
-        // 1. Kullanıcının takım ID'sini al
-        const playerRes = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
-        const player = playerRes.data;
+            await axios.post('http://10.0.2.2:5275/api/TeamMembers', {
+                teamId,
+                playerId
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
-        if (!player.teamId) {
-          setTeamId(null);
-          setMatches([]);
-          setLoading(false);
-          return;
+            Alert.alert("✅ Başarılı", "Takıma katıldınız!");
+            navigation.replace('PlayerProfile');
+
+        } catch (error) {
+            Alert.alert("❌ Hata", "Takıma katılamadınız.");
+            console.log(error);
         }
-
-        setTeamId(player.teamId);
-
-        // 2. Tüm maçları getir
-        const matchRes = await axios.get("http://10.0.2.2:5275/api/Matches");
-        const allMatches = matchRes.data;
-
-        // 3. Takıma ait maçları filtrele
-        const filtered = allMatches.filter(
-          (match: any) => match.team1Id === player.teamId || match.team2Id === player.teamId
-        );
-
-        setMatches(filtered);
-      } catch (err) {
-        console.error("❌ Maçlar alınamadı:", err);
-      } finally {
-        setLoading(false);
-      }
     };
 
-    fetchMatches();
-  }, []);
+    if (loading) {
+        return <ActivityIndicator size="large" color="#2E7D32" />;
+    }
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 50 }} />;
-  }
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Tüm Takımlar</Text>
+            <FlatList
+                data={teams}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <View style={styles.teamCard}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                console.log("➡ Navigasyon teamId:", item.id);
+                                navigation.navigate('TeamDetail', { teamId: item.id });
+                            }}
+                        >
+                            <Text style={styles.teamName}>🏆 {item.name}</Text>
+                            <Text>Kaptan: {item.captain ? `${item.captain.firstName} ${item.captain.lastName}` : 'Belirtilmemiş'}</Text>
+                            <Text>Oyuncu Sayısı: {item.players ? item.players.length : 0}</Text>
+                        </TouchableOpacity>
 
-  if (!teamId) {
-    return <Text style={styles.warning}>⚠️ Herhangi bir takıma katılmadığınız için maç bulunamadı.</Text>;
-  }
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>📅 Maçlarım</Text>
-      <FlatList
-        data={matches}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.matchCard}>
-            <Text style={styles.matchText}>🏆 {item.team1Name} vs {item.team2Name}</Text>
-            <Text style={styles.matchText}>📍 Saha: {item.fieldName}</Text>
-            <Text style={styles.matchText}>📅 Tarih: {new Date(item.matchDate).toLocaleDateString('tr-TR')}</Text>
-          </View>
-        )}
-      />
-    </View>
-  );
+                        {userId && (
+                            <TouchableOpacity
+                                style={styles.joinButton}
+                                onPress={() => handleJoin(item.id)}
+                            >
+                                <Text style={styles.joinButtonText}>Takıma Katıl</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                )}
+            />
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15 },
-  matchCard: {
-    backgroundColor: '#f0f0f0',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  matchText: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  warning: {
-    color: 'gray',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 50,
-  },
+    container: {
+        flex: 1,
+        padding: 20
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 20
+    },
+    teamCard: {
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 10,
+        marginBottom: 10,
+        elevation: 3
+    },
+    teamName: {
+        fontSize: 18,
+        fontWeight: 'bold'
+    },
+    joinButton: {
+        marginTop: 10,
+        backgroundColor: '#2E7D32',
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignItems: 'center'
+    },
+    joinButtonText: {
+        color: 'white',
+        fontWeight: 'bold'
+    }
 });
 
-export default MyMatchesScreen;
+export default TeamList;
