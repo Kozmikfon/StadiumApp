@@ -188,20 +188,21 @@ const HomeScreen = ({ navigation }: any) => {
         </>
       )}
 
-      {role === 'Player' && (
-  position === 'Belirtilmedi' || !position || parseInt(skillLevel || '0') === 0
-) && (
-        <TouchableOpacity
-          style={styles.completeButton}
-          onPress={() => {
-            setProfileVisible(false);
-            navigation.navigate('CompletePlayerProfile');
-          }}
-        >
-          <Text style={{ color: 'white' }}>⚽ Profilini Tamamla</Text>
-        </TouchableOpacity>
-      )}
+      {/* ⚠️ Profil eksikse göster */}
+      {role === 'Player' &&
+        (position === 'Belirtilmedi' || !position || parseInt(skillLevel || '0') === 0) && (
+          <TouchableOpacity
+            style={styles.completeButton}
+            onPress={() => {
+              setProfileVisible(false);
+              navigation.navigate('CompletePlayerProfile');
+            }}
+          >
+            <Text style={{ color: 'white' }}>⚽ Profilini Tamamla</Text>
+          </TouchableOpacity>
+        )}
 
+      {/* 👤 Profili Aç */}
       {role === 'Player' && (
         <TouchableOpacity
           style={styles.completeButtons}
@@ -214,6 +215,7 @@ const HomeScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       )}
 
+      {/* 🔓 Çıkış */}
       <TouchableOpacity
         style={styles.logoutButtons}
         onPress={handleLogout}
@@ -221,12 +223,14 @@ const HomeScreen = ({ navigation }: any) => {
         <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
       </TouchableOpacity>
 
+      {/* ❌ Kapat */}
       <TouchableOpacity onPress={() => setProfileVisible(false)}>
         <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
       </TouchableOpacity>
     </View>
   </View>
 </Modal>
+
 
 
 
@@ -376,7 +380,5 @@ logoutButtons: {
 });
 
 export default HomeScreen;
-function setTeamName(arg0: string) {
-  throw new Error('Function not implemented.');
-}
+
 

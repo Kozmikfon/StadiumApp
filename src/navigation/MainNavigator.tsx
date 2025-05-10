@@ -13,6 +13,7 @@ import MatchList from '../screens/matches/MatchList';
 import PlayerDetail from '../screens/playerPanel/PlayerDetail';
 import CreateMatchScreen from '../screens/matches/CreateMatchScreen';
 import PlayerProfileScreen from '../screens/userPanel/panels/PlayerProfileScreen';
+import MyMatchesScreen from '../screens/matches/MyMatchesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,7 @@ const MainNavigator = () => {
             <Stack.Screen name="MatchList" component={MatchList} />
             <Stack.Screen name="PlayerDetail" component={PlayerDetail} />
             <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
+            <Stack.Screen name="MyMatches" component={MyMatchesScreen} initialParams={{ filter: 'myMatches' }} />
 
         </Stack.Navigator>
     );

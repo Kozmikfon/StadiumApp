@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Button, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import  {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
 const PlayerProfileScreen = ({ navigation }: any) => {
@@ -22,9 +22,11 @@ const PlayerProfileScreen = ({ navigation }: any) => {
         const response = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${uid}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+
         setPlayer(response.data);
       } catch (error) {
         console.error('Oyuncu bilgisi alınamadı:', error);
+        Alert.alert('Hata', 'Oyuncu bilgisi getirilemedi.');
       } finally {
         setLoading(false);
       }
@@ -39,6 +41,7 @@ const PlayerProfileScreen = ({ navigation }: any) => {
       await axios.delete(`http://10.0.2.2:5275/api/TeamMembers/${player.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
       Alert.alert('✅ Takımdan ayrıldınız');
       setPlayer({ ...player, teamId: null, teamName: null });
     } catch (error) {
@@ -47,7 +50,7 @@ const PlayerProfileScreen = ({ navigation }: any) => {
   };
 
   const handleJoinTeam = () => {
-    navigation.navigate('TeamList', { userId }); // takım listesi ekranına yönlendirir (yoksa sonra ekleriz)
+    navigation.navigate('TeamList', { userId });
   };
 
   if (loading) {
@@ -57,6 +60,8 @@ const PlayerProfileScreen = ({ navigation }: any) => {
   if (!player) {
     return <Text style={styles.warning}>❌ Oyuncu profili bulunamadı.</Text>;
   }
+
+  const formattedDate = new Date(player.createAd).toLocaleDateString('tr-TR');
 
   return (
     <View style={styles.container}>
@@ -68,17 +73,24 @@ const PlayerProfileScreen = ({ navigation }: any) => {
         <Text><Text style={styles.label}>Seviye:</Text> {player.skillLevel}</Text>
         <Text><Text style={styles.label}>Rating:</Text> {player.rating}</Text>
         <Text><Text style={styles.label}>Email:</Text> {player.email}</Text>
-        <Text>
-          <Text style={styles.label}>Takım:</Text>{' '}
-          {player.teamName ? player.teamName : 'Takımsız'}
-        </Text>
+        <Text><Text style={styles.label}>Kayıt Tarihi:</Text> {formattedDate}</Text>
+        <Text><Text style={styles.label}>Takım:</Text> {player.teamName || 'Takımsız'}</Text>
       </View>
 
       {player.teamId ? (
-        <Button title="Takımdan Ayrıl" color="red" onPress={handleLeaveTeam} />
-      ) : (
-        <Button title="Takıma Katıl" onPress={handleJoinTeam} />
-      )}
+  <>
+    <Button title="Takımdan Ayrıl" color="red" onPress={handleLeaveTeam} />
+    <View style={{ marginTop: 10 }} />
+    <Button title="📅 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
+  </>
+) : (
+  <>
+    <Button title="Takıma Katıl" color="#2E7D32" onPress={handleJoinTeam} />
+    <View style={{ marginTop: 10 }} />
+    <Button title="📅 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
+  </>
+)}
+
     </View>
   );
 };

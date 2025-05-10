@@ -10,7 +10,6 @@ const CompletePlayerProfile = ({ navigation }: any) => {
     const [email, setEmail] = useState('');
     const [position, setPosition] = useState('');
     const [skillLevel, setSkillLevel] = useState('');
-
     const [userId, setUserId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -19,8 +18,8 @@ const CompletePlayerProfile = ({ navigation }: any) => {
             if (token) {
                 const decoded: any = jwtDecode(token);
                 console.log("📌 Decoded Token:", decoded);
-                setUserId(decoded.userId);
-                setEmail(decoded.sub); // Email token'ın subject'inde geliyor
+                setUserId(Number(decoded.userId));
+                setEmail(decoded.sub);
             } else {
                 Alert.alert('Hata', 'Token bulunamadı. Lütfen tekrar giriş yapın.');
                 navigation.navigate('Login');
@@ -34,14 +33,14 @@ const CompletePlayerProfile = ({ navigation }: any) => {
             Alert.alert('Hata', 'Tüm alanları doldurun.');
             return;
         }
-        
+
         if (!userId) {
-        Alert.alert('Hata', 'Kullanıcı kimliği alınamadı. Lütfen tekrar giriş yapın.');
-        return;
+            Alert.alert('Hata', 'Kullanıcı kimliği alınamadı. Lütfen tekrar giriş yapın.');
+            return;
         }
-    
+
         try {
-            const response = await axios.post('http://10.0.2.2:5275/api/Players', {
+            const payload = {
                 firstName,
                 lastName,
                 email,
@@ -49,17 +48,19 @@ const CompletePlayerProfile = ({ navigation }: any) => {
                 skillLevel: parseInt(skillLevel),
                 rating: 0,
                 createAd: new Date().toISOString(),
-                teamId: null,
+                teamId: null, // takım bilgisi yoksa null gönder
                 userId: userId
-            });
-    
+            };
+
+            const response = await axios.post('http://10.0.2.2:5275/api/Players', payload);
+
             console.log("✅ Oyuncu başarıyla kaydedildi:", response.data);
-    
+
             Alert.alert('Başarılı', 'Oyuncu profili tamamlandı!');
-            navigation.replace('PlayerPanel');
+            navigation.replace('PlayerProfile'); // artık yeni ekran!
         } catch (error: any) {
             console.error('❌ Kayıt hatası:', error);
-    
+
             if (error.response) {
                 console.log('👉 Sunucu cevabı:', error.response.data);
                 Alert.alert('Hata', `Profil kaydedilemedi: ${JSON.stringify(error.response.data)}`);
@@ -72,7 +73,6 @@ const CompletePlayerProfile = ({ navigation }: any) => {
             }
         }
     };
-    
 
     return (
         <View style={styles.container}>

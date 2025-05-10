@@ -54,6 +54,7 @@ const MatchList = ({ navigation }: any) => {
       <View style={styles.headerRow}>
         <Text style={styles.title}>📅 Maçlar</Text>
         <Button title="➕ Maç Oluştur" onPress={() => navigation.navigate('CreateMatch')} />
+          <Button title="📋 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
       </View>
 
       {matches.length === 0 ? (
