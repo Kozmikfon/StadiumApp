@@ -12,6 +12,7 @@ import TeamList from '../screens/TeamPanel/TeamList';
 import TeamDetail from '../screens/TeamPanel/TeamDetail';
 import MatchList from '../screens/matches/MatchList';
 import PlayerDetail from '../screens/playerPanel/PlayerDetail';
+import CreateMatchScreen from '../screens/matches/CreateMatchScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,7 @@ const MainNavigator = () => {
             <Stack.Screen name="TeamDetail" component={TeamDetail} />
             <Stack.Screen name="MatchList" component={MatchList} />
             <Stack.Screen name="PlayerDetail" component={PlayerDetail} />
+            <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
 
         </Stack.Navigator>
     );

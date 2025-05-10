@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Button } from 'react-native';
 import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
 
 const MatchList = ({ navigation }: any) => {
     const route = useRoute<any>();
     const { filter } = route.params || {};
-    console.log("📌 Filtre:", filter);
-
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -15,9 +13,7 @@ const MatchList = ({ navigation }: any) => {
         const fetchMatches = async () => {
             try {
                 const response = await axios.get('http://10.0.2.2:5275/api/Matches');
-                console.log("📌 Gelen maç verileri:", response.data);
 
-                // 🎯 Filtreleme yapalım
                 let filteredMatches = response.data;
 
                 if (filter === 'today') {
@@ -54,6 +50,9 @@ const MatchList = ({ navigation }: any) => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>⚽ Maçlar</Text>
+
+            <Button title="➕ Maç Oluştur" onPress={() => navigation.navigate('CreateMatch')} />
+
             {matches.length === 0 ? (
                 <Text>Maç bulunamadı.</Text>
             ) : (
