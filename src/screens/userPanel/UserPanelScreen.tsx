@@ -48,23 +48,35 @@ const UserPanel = ({ navigation }: any) => {
             <Text>Email: {userData.email}</Text>
 
             {playerData ? (
-                <>
-                    <Text style={{ marginTop: 20, fontWeight: 'bold' }}>⚽ Oyuncu Bilgileri</Text>
-                    <Text>Pozisyon: {playerData.position}</Text>
-                    <Text>Skill Level: {playerData.skillLevel}</Text>
-                    <Text>Rating: {playerData.rating}</Text>
-                    <TouchableOpacity style={styles.button} onPress={() => navigation.replace('PlayerPanel')}>
-                        <Text style={styles.buttonText}>Player Paneline Geç</Text>
-                    </TouchableOpacity>
-                </>
-            ) : (
-                <>
-                    <Text style={{ marginTop: 20, color: 'gray' }}>Henüz oyuncu profiliniz yok.</Text>
-                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CompletePlayerProfile')}>
-                        <Text style={styles.buttonText}>Oyuncu Profilini Tamamla</Text>
-                    </TouchableOpacity>
-                </>
-            )}
+  (playerData.position && playerData.skillLevel !== 0) ? (
+    <>
+      <Text style={{ marginTop: 20, fontWeight: 'bold' }}>⚽ Oyuncu Bilgileri</Text>
+      <Text>Pozisyon: {playerData.position}</Text>
+      <Text>Skill Level: {playerData.skillLevel}</Text>
+      <Text>Rating: {playerData.rating}</Text>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.replace('PlayerProfile')}>
+        <Text style={styles.buttonText}>Profilimi Görüntüle</Text>
+      </TouchableOpacity>
+    </>
+  ) : (
+    <>
+      <Text style={{ marginTop: 20, color: 'orange' }}>
+        ⚠️ Oyuncu bilgileriniz eksik. Lütfen tamamlayın.
+      </Text>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CompletePlayerProfile')}>
+        <Text style={styles.buttonText}>Profilini Tamamla</Text>
+      </TouchableOpacity>
+    </>
+  )
+) : (
+  <>
+    <Text style={{ marginTop: 20, color: 'gray' }}>Henüz oyuncu profiliniz yok.</Text>
+    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CompletePlayerProfile')}>
+      <Text style={styles.buttonText}>Oyuncu Profilini Oluştur</Text>
+    </TouchableOpacity>
+  </>
+)}
+
         </View>
     );
 };

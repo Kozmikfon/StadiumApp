@@ -168,52 +168,66 @@ const HomeScreen = ({ navigation }: any) => {
 
             {/* Modal Profil */}
             <Modal
-            animationType="slide"
-        transparent={true}
-     visible={profileVisible}
-    onRequestClose={() => setProfileVisible(false)}
+  animationType="slide"
+  transparent={true}
+  visible={profileVisible}
+  onRequestClose={() => setProfileVisible(false)}
 >
-    <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>👤 Kullanıcı Bilgileri</Text>
-            <Text>Ad Soyad: {userName}</Text>
-            <Text>Email: {email}</Text>
-            <Text>Rol: {role}</Text>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>👤 Kullanıcı Bilgileri</Text>
+      <Text>Ad Soyad: {userName}</Text>
+      <Text>Email: {email}</Text>
+      <Text>Rol: {role}</Text>
 
-            {role === 'Player' && (
-                <>
-                    <Text>Pozisyon: {position}</Text>
-                    <Text>Seviye: {skillLevel}</Text>
-                    <Text>Rating: {rating}</Text>
-                </>
-            )}
+      {role === 'Player' && (
+        <>
+          <Text>Pozisyon: {position || 'Belirtilmedi'}</Text>
+          <Text>Seviye: {skillLevel || '0'}</Text>
+          <Text>Rating: {rating || '0'}</Text>
+        </>
+      )}
 
-            {/* Eğer oyuncu bilgileri eksikse tamamlama butonu */}
-            {role === 'Player' && (position === 'Belirtilmedi' || !position) && (
-                <TouchableOpacity
-                    style={styles.completeButton}
-                    onPress={() => {
-                        setProfileVisible(false);
-                        navigation.navigate('CompletePlayerProfile');
-                    }}
-                >
-                    <Text style={{ color: 'white' }}>⚽ Profilini Tamamla</Text>
-                </TouchableOpacity>
-            )}
+      {role === 'Player' && (
+  position === 'Belirtilmedi' || !position || parseInt(skillLevel || '0') === 0
+) && (
+        <TouchableOpacity
+          style={styles.completeButton}
+          onPress={() => {
+            setProfileVisible(false);
+            navigation.navigate('CompletePlayerProfile');
+          }}
+        >
+          <Text style={{ color: 'white' }}>⚽ Profilini Tamamla</Text>
+        </TouchableOpacity>
+      )}
 
-            <TouchableOpacity
-                style={styles.logoutButtons}
-                onPress={handleLogout}
-            >
-                <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
-            </TouchableOpacity>
+      {role === 'Player' && (
+        <TouchableOpacity
+          style={styles.completeButtons}
+          onPress={() => {
+            setProfileVisible(false);
+            navigation.navigate('PlayerProfile');
+          }}
+        >
+          <Text style={{ color: 'white' }}>👤 Profili Aç</Text>
+        </TouchableOpacity>
+      )}
 
-            <TouchableOpacity onPress={() => setProfileVisible(false)}>
-                <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
-            </TouchableOpacity>
-        </View>
+      <TouchableOpacity
+        style={styles.logoutButtons}
+        onPress={handleLogout}
+      >
+        <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => setProfileVisible(false)}>
+        <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
+      </TouchableOpacity>
     </View>
+  </View>
 </Modal>
+
 
 
 
@@ -327,31 +341,38 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    logoutButtons: {
-        marginTop: 10,
-        backgroundColor: '#c62828',
-        padding: 10,
-        borderRadius: 6,
-        alignItems: 'center',
-        width: '100%',
-    },
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0,0,0,0.5)'
+},
+modalContent: {
+  backgroundColor: '#fff',
+  padding: 25,
+  borderRadius: 12,
+  width: '80%',
+  alignItems: 'center'
+},
+modalTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  marginBottom: 15
+},
+completeButtons: {
+  backgroundColor: '#2E7D32',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  marginTop: 15
+},
+logoutButtons: {
+  backgroundColor: '#D32F2F',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  marginTop: 15
+}
+
 });
 
 export default HomeScreen;
