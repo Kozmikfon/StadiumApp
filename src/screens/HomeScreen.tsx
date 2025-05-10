@@ -21,37 +21,59 @@ const HomeScreen = ({ navigation }: any) => {
 
     // Player futbol bilgileri:
     const [position, setPosition] = useState('');
-    const [skillLevel, setSkillLevel] = useState<number | null>(null);
+    const [skillLevel, setSkillLevel] = useState<string | null>(null);
     const [rating, setRating] = useState<number | null>(null);
-
+    const [teamName, setTeamName] = useState('');
     // JWT'den bilgileri çekelim:
     useEffect(() => {
-        const getUserInfo = async () => {
-            const token = await AsyncStorage.getItem('token');
-            if (token) {
-                const decoded: any = jwtDecode(token);
-                console.log("✅ JWT Bilgileri:", decoded);
-                setUserName(decoded.firstName + ' ' + decoded.lastName);
-                setEmail(decoded.sub);
-                setRole(decoded.role);
-
-                // Eğer oyuncuysa futbol bilgilerini çek
-                if (decoded.role === 'Player') {
-                    try {
-                        const response = await axios.get(`http://10.0.2.2:5275/api/Players/${decoded.userId}`);
-                        const player = response.data;
-                        setPosition(player.position);
-                        setSkillLevel(player.skillLevel);
-                        setRating(player.rating);
-                    } catch (error) {
-                        console.error('❌ Oyuncu bilgileri çekilemedi:', error);
-                    }
-                }
-            }
-        };
-
-        getUserInfo();
-    }, []);
+      const getUserInfo = async () => {
+          const token = await AsyncStorage.getItem('token');
+          if (token) {
+              const decoded: any = jwtDecode(token);
+              console.log("✅ JWT Bilgileri:", decoded);
+  
+              setUserName(decoded.firstName + ' ' + decoded.lastName);
+              setEmail(decoded.sub);
+              setRole(decoded.role);
+  
+              const userId = decoded.userId;
+  
+              if (decoded.role === 'Player') {
+                  try {
+                      const playerResponse = await axios.get(`http://10.0.2.2:5275/api/Players/user/${userId}`);
+                      const player = playerResponse.data;
+  
+                      setPosition(player.position || 'Belirtilmedi');
+                      setSkillLevel(player.skillLevel?.toString() || 'Belirtilmedi');
+                      setRating(player.rating ?? 0);
+                      setTeamName(player.teamName || 'Takımsız');
+  
+                      console.log("✅ Oyuncu bilgileri çekildi:", player);
+  
+                  } catch (error: any) {
+                      console.log('❌ Oyuncu bilgileri çekilemedi:', error);
+  
+                      // Eğer oyuncu kaydı yoksa direkt profil tamamlama ekranına yönlendir:
+                      Alert.alert(
+                          "Profil Eksik",
+                          "Futbol bilgilerin eksik. Profilini tamamlaman gerekiyor.",
+                          [
+                              {
+                                  text: "Tamam",
+                                  onPress: () => navigation.replace('CompletePlayerProfile')
+                              }
+                          ]
+                      );
+                  }
+              }
+          }
+      };
+  
+      getUserInfo();
+  }, []);
+  
+  
+  
 
     // Çıkış fonksiyonu:
     const handleLogout = async () => {
@@ -146,39 +168,54 @@ const HomeScreen = ({ navigation }: any) => {
 
             {/* Modal Profil */}
             <Modal
-                animationType="slide"
-                transparent={true}
-                visible={profileVisible}
-                onRequestClose={() => setProfileVisible(false)}
+            animationType="slide"
+        transparent={true}
+     visible={profileVisible}
+    onRequestClose={() => setProfileVisible(false)}
+>
+    <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>👤 Kullanıcı Bilgileri</Text>
+            <Text>Ad Soyad: {userName}</Text>
+            <Text>Email: {email}</Text>
+            <Text>Rol: {role}</Text>
+
+            {role === 'Player' && (
+                <>
+                    <Text>Pozisyon: {position}</Text>
+                    <Text>Seviye: {skillLevel}</Text>
+                    <Text>Rating: {rating}</Text>
+                </>
+            )}
+
+            {/* Eğer oyuncu bilgileri eksikse tamamlama butonu */}
+            {role === 'Player' && (position === 'Belirtilmedi' || !position) && (
+                <TouchableOpacity
+                    style={styles.completeButton}
+                    onPress={() => {
+                        setProfileVisible(false);
+                        navigation.navigate('CompletePlayerProfile');
+                    }}
+                >
+                    <Text style={{ color: 'white' }}>⚽ Profilini Tamamla</Text>
+                </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+                style={styles.logoutButtons}
+                onPress={handleLogout}
             >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>👤 Kullanıcı Bilgileri</Text>
-                        <Text>Ad Soyad: {userName}</Text>
-                        <Text>Email: {email}</Text>
-                        <Text>Rol: {role}</Text>
+                <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
+            </TouchableOpacity>
 
-                        {role === 'Player' && (
-                            <>
-                                <Text>Pozisyon: {position}</Text>
-                                <Text>Seviye: {skillLevel}</Text>
-                                <Text>Rating: {rating}</Text>
-                            </>
-                        )}
+            <TouchableOpacity onPress={() => setProfileVisible(false)}>
+                <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
+            </TouchableOpacity>
+        </View>
+    </View>
+</Modal>
 
-                        <TouchableOpacity
-                            style={styles.logoutButtons}
-                            onPress={handleLogout}
-                        >
-                            <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
-                        </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => setProfileVisible(false)}>
-                            <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
 
         </ScrollView>
     );
@@ -190,6 +227,21 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         backgroundColor: '#f5f5f5',
     },
+    infoText: {
+      fontSize: 16,
+      marginBottom: 5,
+      textAlign: 'center'
+  },
+  completeButton: {
+    marginTop: 10,
+    backgroundColor: '#1976D2',
+    padding: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+    width: '100%',
+},
+
+  
     navbar: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -303,3 +355,7 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+function setTeamName(arg0: string) {
+  throw new Error('Function not implemented.');
+}
+

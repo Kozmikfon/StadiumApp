@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 
-const PlayerList = () => {
+const PlayerList = ({ navigation }: any) => {  // 👈 navigation propsunu ekledim
     const [players, setPlayers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -32,13 +32,16 @@ const PlayerList = () => {
                 data={players}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                    <View style={styles.playerCard}>
+                    <TouchableOpacity
+                        style={styles.playerCard}
+                        onPress={() => navigation.navigate('PlayerDetail', { player: item })}  // 👈 Detay sayfasına yönlendir
+                    >
                         <Text style={styles.playerName}>{item.firstName} {item.lastName}</Text>
-                        <Text>Pozisyon: {item.position}</Text>
-                        <Text>Skill Level: {item.skillLevel}</Text>
-                        <Text>Rating: {item.rating}</Text>
+                        <Text>Pozisyon: {item.position || 'Belirtilmemiş'}</Text>
+                        <Text>Skill Level: {item.skillLevel || '-'}</Text>
+                        <Text>Rating: {item.rating || '-'}</Text>
                         <Text>Takım: {item.teamName ?? "Takımsız"}</Text>
-                    </View>
+                    </TouchableOpacity>
                 )}
             />
         </View>

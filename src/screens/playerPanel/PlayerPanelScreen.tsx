@@ -1,64 +1,65 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import axios from 'axios';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
-const PlayerPanelScreen = () => {
-    const [playerData, setPlayerData] = useState<any>(null);
+const PlayerPanelScreen = ({ navigation }: any) => {
+    const [player, setPlayer] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchPlayerData = async () => {
-            try {
-                // 1️⃣ TOKEN'I AL
-                const token = await AsyncStorage.getItem('token');
-                console.log('📌 Okunan token:', token);
+        const fetchPlayer = async () => {
+            const token = await AsyncStorage.getItem('token');
+            if (!token) {
+                navigation.replace('Login');
+                return;
+            }
 
-                if (!token) {
-                    throw new Error('Token bulunamadı');
+            const decoded: any = jwtDecode(token);
+            const userId = decoded.userId;
+
+            try {
+                const response = await axios.get(`http://10.0.2.2:5275/api/Players/user/${userId}`);
+                console.log("✅ Oyuncu Bilgileri:", response.data);
+
+                // Futbol bilgilerini kontrol edelim:
+                const playerData = response.data;
+                if (!playerData.position || !playerData.skillLevel) {
+                    // Futbol bilgileri eksik → Profil tamamlama sayfasına yönlendir:
+                    navigation.replace('CompletePlayerProfile');
+                    return;
                 }
 
-                // 2️⃣ TOKEN'DAN userId AL
-                const decoded: any = jwtDecode(token);
-                console.log('📌 Decoded Token:', decoded);
-
-                const userId = decoded.userId;
-                console.log('📌 UserID:', userId);
-
-                // 3️⃣ BACKEND'DEN PLAYER BİLGİLERİNİ ÇEK
-                const response = await axios.get(`http://10.0.2.2:5275/api/Players/user/${userId}`);
-                console.log('📌 Oyuncu verisi:', response.data);
-
-                setPlayerData(response.data);
-
+                setPlayer(playerData);
             } catch (error) {
-                console.error('❌ Oyuncu verisi alınamadı:', error);
+                console.error('❌ Oyuncu bilgileri alınamadı:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchPlayerData();
+        fetchPlayer();
     }, []);
 
     if (loading) {
         return <ActivityIndicator size="large" color="#2E7D32" />;
     }
 
-    if (!playerData) {
-        return <Text>❗ Oyuncu bilgisi bulunamadı.</Text>;
-    }
-
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>⚽ Oyuncu Bilgileri</Text>
-            <Text>Ad Soyad: {playerData.firstName} {playerData.lastName}</Text>
-            <Text>Email: {playerData.email}</Text>
-            <Text>Pozisyon: {playerData.position}</Text>
-            <Text>Skill Level: {playerData.skillLevel}</Text>
-            <Text>Rating: {playerData.rating}</Text>
-            <Text>Takım: {playerData.teamName || 'Henüz takım yok'}</Text>
+            <Text style={styles.title}>⚽ Oyuncu Paneli</Text>
+            <Text style={styles.info}>Ad Soyad: {player.firstName} {player.lastName}</Text>
+            <Text style={styles.info}>Pozisyon: {player.position}</Text>
+            <Text style={styles.info}>Seviye: {player.skillLevel}</Text>
+            <Text style={styles.info}>Takım: {player.teamName ?? "Takımsız"}</Text>
+
+            <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => navigation.navigate('CompletePlayerProfile')}
+            >
+                <Text style={{ color: 'white' }}>Bilgileri Güncelle</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -66,15 +67,24 @@ const PlayerPanelScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20
+        padding: 20,
     },
     title: {
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20
-    }
+        marginBottom: 20,
+    },
+    info: {
+        fontSize: 18,
+        marginBottom: 10,
+    },
+    editButton: {
+        marginTop: 20,
+        backgroundColor: '#2E7D32',
+        padding: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
 });
 
 export default PlayerPanelScreen;
