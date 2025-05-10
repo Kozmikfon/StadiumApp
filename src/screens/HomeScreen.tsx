@@ -25,30 +25,42 @@ const HomeScreen = ({ navigation }: any) => {
     const [rating, setRating] = useState<number | null>(null);
     const [teamName, setTeamName] = useState('');
     // JWT'den bilgileri çekelim:
-    useEffect(() => {
-      const getUserInfo = async () => {
-          const token = await AsyncStorage.getItem('token');
-          if (token) {
-              const decoded: any = jwtDecode(token);
-              console.log("✅ JWT Bilgileri:", decoded);
-  
-              setUserName(decoded.firstName + ' ' + decoded.lastName);
-              setEmail(decoded.sub);
-              setRole(decoded.role);
-  
-              const userId = decoded.userId;
-  
-              if (decoded.role === 'Player') {
-                  try {
-                      const playerResponse = await axios.get(`http://10.0.2.2:5275/api/Players/user/${userId}`);
-                      const player = playerResponse.data;
-  
-                      setPosition(player.position || 'Belirtilmedi');
-                      setSkillLevel(player.skillLevel?.toString() || 'Belirtilmedi');
-                      setRating(player.rating ?? 0);
-                      setTeamName(player.teamName || 'Takımsız');
-  
-                      console.log("✅ Oyuncu bilgileri çekildi:", player);
+       useEffect(() => {
+        const getUserInfo = async () => {
+            const token = await AsyncStorage.getItem('token');
+            if (token) {
+                const decoded: any = jwtDecode(token);
+                console.log("✅ JWT Bilgileri:", decoded);
+
+                setEmail(decoded.sub);
+                setRole(decoded.role);
+
+                const userId = decoded.userId;
+
+                if (decoded.firstName && decoded.lastName) {
+                    setUserName(`${decoded.firstName} ${decoded.lastName}`);
+                } else {
+                    try {
+                        const userResponse = await axios.get(`http://10.0.2.2:5275/api/Users/${userId}`);
+                        const user = userResponse.data;
+                        setUserName(`${user.firstName} ${user.lastName}`);
+                    } catch (error) {
+                        console.log("❌ Kullanıcı bilgileri alınamadı", error);
+                        setUserName("Bilinmiyor");
+                    }
+                }
+
+                if (decoded.role === 'Player') {
+                    try {
+                        const playerResponse = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
+                        const player = playerResponse.data;
+
+                        setPosition(player.position || 'Belirtilmedi');
+                        setSkillLevel(player.skillLevel?.toString() || 'Belirtilmedi');
+                        setRating(player.rating ?? 0);
+                        setTeamName(player.teamName || 'Takımsız');
+
+                        console.log("✅ Oyuncu bilgileri çekildi:", player);
   
                   } catch (error: any) {
                       console.log('❌ Oyuncu bilgileri çekilemedi:', error);
@@ -167,69 +179,50 @@ const HomeScreen = ({ navigation }: any) => {
             />
 
             {/* Modal Profil */}
-            <Modal
-  animationType="slide"
-  transparent={true}
-  visible={profileVisible}
-  onRequestClose={() => setProfileVisible(false)}
->
-  <View style={styles.modalContainer}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>👤 Kullanıcı Bilgileri</Text>
-      <Text>Ad Soyad: {userName}</Text>
-      <Text>Email: {email}</Text>
-      <Text>Rol: {role}</Text>
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={profileVisible}
+                onRequestClose={() => setProfileVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>👤 Kullanıcı Bilgileri</Text>
+                        <Text>Ad Soyad: {userName}</Text>
+                        <Text>Email: {email}</Text>
+                        <Text>Rol: {role}</Text>
 
-      {role === 'Player' && (
-        <>
-          <Text>Pozisyon: {position || 'Belirtilmedi'}</Text>
-          <Text>Seviye: {skillLevel || '0'}</Text>
-          <Text>Rating: {rating || '0'}</Text>
-        </>
-      )}
+                        {(role === 'Player' || role === 'User') && (
+                            <>
+                                <Text>Pozisyon: {position || 'Belirtilmedi'}</Text>
+                                <Text>Seviye: {skillLevel || '0'}</Text>
+                                <Text>Rating: {rating || '0'}</Text>
 
-      {/* ⚠️ Profil eksikse göster */}
-      {role === 'Player' &&
-        (position === 'Belirtilmedi' || !position || parseInt(skillLevel || '0') === 0) && (
-          <TouchableOpacity
-            style={styles.completeButton}
-            onPress={() => {
-              setProfileVisible(false);
-              navigation.navigate('CompletePlayerProfile');
-            }}
-          >
-            <Text style={{ color: 'white' }}>⚽ Profilini Tamamla</Text>
-          </TouchableOpacity>
-        )}
+                                <TouchableOpacity
+                                    style={styles.completeButtons}
+                                    onPress={() => {
+                                        setProfileVisible(false);
+                                        navigation.navigate('PlayerProfile');
+                                    }}
+                                >
+                                    <Text style={{ color: 'white' }}>👤 Profili Aç</Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
 
-      {/* 👤 Profili Aç */}
-      {role === 'Player' && (
-        <TouchableOpacity
-          style={styles.completeButtons}
-          onPress={() => {
-            setProfileVisible(false);
-            navigation.navigate('PlayerProfile');
-          }}
-        >
-          <Text style={{ color: 'white' }}>👤 Profili Aç</Text>
-        </TouchableOpacity>
-      )}
+                        <TouchableOpacity
+                            style={styles.logoutButtons}
+                            onPress={handleLogout}
+                        >
+                            <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
+                        </TouchableOpacity>
 
-      {/* 🔓 Çıkış */}
-      <TouchableOpacity
-        style={styles.logoutButtons}
-        onPress={handleLogout}
-      >
-        <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
-      </TouchableOpacity>
-
-      {/* ❌ Kapat */}
-      <TouchableOpacity onPress={() => setProfileVisible(false)}>
-        <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+                        <TouchableOpacity onPress={() => setProfileVisible(false)}>
+                            <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
 
 
 

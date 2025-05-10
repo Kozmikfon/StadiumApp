@@ -57,9 +57,19 @@ const PlayerProfileScreen = ({ navigation }: any) => {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 50 }} />;
   }
 
-  if (!player) {
-    return <Text style={styles.warning}>❌ Oyuncu profili bulunamadı.</Text>;
-  }
+ if (!player) {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.warning}>❌ Oyuncu profili bulunamadı.</Text>
+      <Button
+        title="Profil Oluştur"
+        onPress={() => navigation.replace('CompletePlayerProfile')}
+      />
+    </View>
+  );
+}
+   //// ekleme
+
 
   const formattedDate = new Date(player.createAd).toLocaleDateString('tr-TR');
 
