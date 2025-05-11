@@ -16,6 +16,7 @@ import PlayerProfileScreen from '../screens/userPanel/panels/PlayerProfileScreen
 import MyMatchesScreen from '../screens/matches/MyMatchesScreen';
 import SendOfferScreen from '../screens/playerPanel/SendOfferScreen';
 import MyOffersScreen from '../screens/playerPanel/MyOffersScreen';
+import MatchDetailScreen from '../screens/matches/MatchDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +39,7 @@ const MainNavigator = () => {
             <Stack.Screen name="MyMatches" component={MyMatchesScreen} initialParams={{ filter: 'myMatches' }} />
             <Stack.Screen name="SendOffer" component={SendOfferScreen} initialParams={{ filter: 'myOffers' }} />
             <Stack.Screen name="MyOffers" component={MyOffersScreen} />
+            <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
 
         </Stack.Navigator>
     );

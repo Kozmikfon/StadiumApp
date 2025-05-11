@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, Button, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Button, Alert, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { useIsFocused, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -86,6 +86,7 @@ const MatchList = ({ navigation }: any) => {
         <Text style={styles.title}>📅 Maçlar</Text>
         <Button title="➕ Maç Oluştur" onPress={() => navigation.navigate('CreateMatch')} />
           <Button title="📋 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
+            
       </View>
 
       {matches.length === 0 ? (
@@ -95,14 +96,18 @@ const MatchList = ({ navigation }: any) => {
           data={matches}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.matchTeams}>{item.team1Name} vs {item.team2Name}</Text>
-              <Text style={styles.field}>Saha: {item.fieldName}</Text>
-              <Text style={styles.date}>
-                Tarih: {new Date(item.matchDate).toLocaleDateString()} - {new Date(item.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-            </View>
-          )}
+  <TouchableOpacity
+    style={styles.card}
+    onPress={() => navigation.navigate('MatchDetail', { matchId: item.id })}
+  >
+    <Text style={styles.matchTeams}>{item.team1Name} vs {item.team2Name}</Text>
+    <Text style={styles.field}>Saha: {item.fieldName}</Text>
+    <Text style={styles.date}>
+      Tarih: {new Date(item.matchDate).toLocaleDateString()} - {new Date(item.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+    </Text>
+  </TouchableOpacity>
+)}
+
         />
       )}
     </View>
