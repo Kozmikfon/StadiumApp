@@ -97,6 +97,10 @@ const PlayerProfileScreen = ({ navigation }: any) => {
 
       <View style={{ marginTop: 10 }} />
       <Button title="📅 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
+      <View style={{ marginTop: 10 }} />
+      <Button title="📨 Gelen Teklifler" color="#FFA000" onPress={() => navigation.navigate('MyOffers')} />
+      <View style={{ marginTop: 10 }} />
+      <Button title="👥 Oyuncular Listesi" color="#6A1B9A" onPress={() => navigation.navigate('PlayerList')} />
     </View>
   );
 };
