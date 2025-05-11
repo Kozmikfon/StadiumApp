@@ -50,31 +50,28 @@ const PlayerProfileScreen = ({ navigation }: any) => {
   };
 
   const handleJoinTeam = () => {
-  if (userId) {
-    navigation.navigate('TeamList', { userId }); // TeamList'e userId gönderiliyor
-  } else {
-    Alert.alert("Hata", "Kullanıcı bilgisi alınamadı.");
-  }
-};
-
+    if (userId) {
+      navigation.navigate('TeamList', { userId });
+    } else {
+      Alert.alert("Hata", "Kullanıcı bilgisi alınamadı.");
+    }
+  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 50 }} />;
   }
 
- if (!player) {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.warning}>❌ Oyuncu profili bulunamadı.</Text>
-      <Button
-        title="Profil Oluştur"
-        onPress={() => navigation.replace('CompletePlayerProfile')}
-      />
-    </View>
-  );
-}
-   //// ekleme
-
+  if (!player) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.warning}>❌ Oyuncu profili bulunamadı.</Text>
+        <Button
+          title="Profil Oluştur"
+          onPress={() => navigation.replace('CompletePlayerProfile')}
+        />
+      </View>
+    );
+  }
 
   const formattedDate = new Date(player.createAd).toLocaleDateString('tr-TR');
 
@@ -92,19 +89,14 @@ const PlayerProfileScreen = ({ navigation }: any) => {
         <Text><Text style={styles.label}>Takım:</Text> {player.teamName || 'Takımsız'}</Text>
       </View>
 
-     {player.teamId ? (
-  <>
-    <Button title="Takımdan Ayrıl" color="red" onPress={handleLeaveTeam} />
-  </>
-) : (
-  <>
-    <Button title="Takıma Katıl" color="#2E7D32" onPress={handleJoinTeam} />
-  </>
-)}
+      {player.teamId ? (
+        <Button title="Takımdan Ayrıl" color="red" onPress={handleLeaveTeam} />
+      ) : (
+        <Button title="Takıma Katıl" color="#2E7D32" onPress={handleJoinTeam} />
+      )}
 
-<View style={{ marginTop: 10 }} />
-<Button title="📅 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
-
+      <View style={{ marginTop: 10 }} />
+      <Button title="📅 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
     </View>
   );
 };

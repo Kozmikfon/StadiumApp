@@ -34,7 +34,7 @@ const MainNavigator = () => {
             <Stack.Screen name="PlayerDetail" component={PlayerDetail} />
             <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
             <Stack.Screen name="MyMatches" component={MyMatchesScreen} initialParams={{ filter: 'myMatches' }} />
-
+            
         </Stack.Navigator>
     );
 };
