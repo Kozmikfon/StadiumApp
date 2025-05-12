@@ -11,6 +11,7 @@ const MatchDetailScreen = () => {
 
   const [match, setMatch] = useState<any>(null);
   const [offers, setOffers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,15 +19,20 @@ const MatchDetailScreen = () => {
       try {
         const token = await AsyncStorage.getItem('token');
 
-        const matchRes = await axios.get(`http://10.0.2.2:5275/api/Matches/${matchId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const offersRes = await axios.get(`http://10.0.2.2:5275/api/Offers`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [matchRes, offersRes, playersRes] = await Promise.all([
+          axios.get(`http://10.0.2.2:5275/api/Matches/${matchId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`http://10.0.2.2:5275/api/Offers`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`http://10.0.2.2:5275/api/Players`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
         setMatch(matchRes.data);
+        setPlayers(playersRes.data);
 
         const filteredOffers = offersRes.data.filter((o: any) => o.matchId === matchId);
         setOffers(filteredOffers);
@@ -39,6 +45,11 @@ const MatchDetailScreen = () => {
 
     fetchMatchDetails();
   }, [matchId]);
+
+  const getPlayerName = (playerId: number) => {
+    const player = players.find(p => p.id === playerId);
+    return player ? `${player.firstName} ${player.lastName}` : `ID: ${playerId}`;
+  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#1976D2" style={{ marginTop: 30 }} />;
@@ -61,8 +72,8 @@ const MatchDetailScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.offerCard}>
-            <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
-            <Text>Alıcı Oyuncu ID: {item.receiverId}</Text>
+            <Text>Gönderen: {getPlayerName(item.senderId)}</Text>
+            <Text>Alıcı: {getPlayerName(item.receiverId)}</Text>
             <Text>Durum: {item.status}</Text>
           </View>
         )}
