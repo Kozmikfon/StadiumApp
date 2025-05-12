@@ -9,12 +9,12 @@ import { Picker } from '@react-native-picker/picker';
 const SendOfferScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { receiverId } = route.params; // matchId artık dışarıdan değil, seçilecek
+  const { receiverId } = route.params;
 
   const [loading, setLoading] = useState(false);
-  const [senderId, setSenderId] = useState<number | null>(null);
   const [matches, setMatches] = useState<any[]>([]);
-  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<number>(0);
+  const [senderId, setSenderId] = useState<number | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -26,39 +26,44 @@ const SendOfferScreen = () => {
         const matchRes = await axios.get('http://10.0.2.2:5275/api/Matches');
         setMatches(matchRes.data);
       } catch (err) {
-        Alert.alert('Hata', 'Veriler alınamadı.');
+        console.error('❌ Veriler alınamadı:', err);
+        Alert.alert('Hata', 'Veriler alınırken sorun oluştu.');
       }
     };
+
     init();
   }, []);
 
   const handleSendOffer = async () => {
-    if (!senderId || !receiverId || !selectedMatchId) {
-      Alert.alert('Uyarı', 'Lütfen tüm alanları doldurun.');
+    if (!senderId || !receiverId || selectedMatchId === 0) {
+      Alert.alert('⚠️ Eksik Bilgi', 'Lütfen tüm alanları doldurun.');
       return;
     }
+    console.log("senderId:", senderId);
+    console.log("receiverId:", receiverId);
+    console.log("selectedMatchId:", selectedMatchId);
+
 
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
 
-      await axios.post('http://10.0.2.2:5275/api/Offers', {
+      const offerDto = {
         senderId,
         receiverId,
         matchId: selectedMatchId,
         status: 'Beklemede'
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      };
+
+      await axios.post('http://10.0.2.2:5275/api/Offers', offerDto, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       Alert.alert('✅ Başarılı', 'Teklif gönderildi.');
       navigation.goBack();
-
-    } catch (error) {
-      console.error("Teklif gönderme hatası:", error);
-      Alert.alert('❌ Hata', 'Teklif gönderilemedi.');
+    } catch (err) {
+      console.error('❌ Teklif gönderilemedi:', err);
+      Alert.alert('Hata', 'Teklif gönderilirken bir sorun oluştu.');
     } finally {
       setLoading(false);
     }
@@ -71,7 +76,7 @@ const SendOfferScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🎯 Teklif Gönder</Text>
-      <Text>🎯 Alıcı Oyuncu ID: {receiverId}</Text>
+      <Text>👤 Alıcı Oyuncu ID: {receiverId}</Text>
 
       <Text style={{ marginTop: 20, fontWeight: 'bold' }}>📅 Maç Seçin:</Text>
       <Picker
@@ -79,17 +84,17 @@ const SendOfferScreen = () => {
         onValueChange={(value) => setSelectedMatchId(value)}
         style={{ backgroundColor: '#e0e0e0', marginVertical: 10 }}
       >
-        <Picker.Item label="Bir maç seçin..." value={null} />
+        <Picker.Item label="Bir maç seçin..." value={0} />
         {matches.map((match: any) => (
           <Picker.Item
             key={match.id}
-            label={`#${match.id} - ${match.fieldName}`}
+            label={`#${match.id} - ${match.fieldName} (${new Date(match.matchDate).toLocaleDateString()})`}
             value={match.id}
           />
         ))}
       </Picker>
 
-      <Button title="Teklif Gönder" color="#2E7D32" onPress={handleSendOffer} />
+      <Button title="➕ Teklif Gönder" color="#2E7D32" onPress={handleSendOffer} />
     </View>
   );
 };
