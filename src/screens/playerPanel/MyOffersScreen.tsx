@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Button, Alert } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
@@ -33,9 +33,10 @@ const MyOffersScreen = () => {
   const updateStatus = async (offerId: number, status: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
+
       await axios.put(
         `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
-        status,
+        `"${status}"`, // String olduğu için tırnak içinde gönder
         {
           headers: {
             'Content-Type': 'application/json',
@@ -43,8 +44,19 @@ const MyOffersScreen = () => {
           }
         }
       );
+
       Alert.alert("✅ Başarılı", `Teklif ${status} olarak güncellendi`);
-      fetchOffers(); // Listeyi yenile
+
+      // 👇 Anında UI güncelle
+      setOffers(prev =>
+        prev.map(offer =>
+          offer.id === offerId ? { ...offer, status } : offer
+        )
+      );
+
+      // 🔄 Ek olarak istersen sunucudan tekrar veri çek
+      // await fetchOffers();
+
     } catch (error) {
       console.error("❌ Güncelleme hatası:", error);
       Alert.alert("Hata", "Durum güncellenemedi.");
@@ -68,17 +80,13 @@ const MyOffersScreen = () => {
             <Text>Durum: {item.status}</Text>
 
             {item.status === 'Beklemede' && (
-              <View style={styles.buttonGroup}>
-                <Button
-                  title="✅ Onayla"
-                  color="#2E7D32"
-                  onPress={() => updateStatus(item.id, 'Onaylandı')}
-                />
-                <Button
-                  title="❌ Reddet"
-                  color="red"
-                  onPress={() => updateStatus(item.id, 'Reddedildi')}
-                />
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, "Onaylandı")}>
+                  <Text style={styles.btnText}>Onayla</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, "Reddedildi")}>
+                  <Text style={styles.btnText}>Reddet</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -98,12 +106,27 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10
   },
-  buttonGroup: {
-    marginTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between'
+  empty: { textAlign: 'center', marginTop: 50, fontSize: 16 },
+  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  acceptBtn: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 6,
+    flex: 1,
+    marginRight: 5
   },
-  empty: { textAlign: 'center', marginTop: 50, fontSize: 16 }
+  rejectBtn: {
+    backgroundColor: '#f44336',
+    padding: 10,
+    borderRadius: 6,
+    flex: 1,
+    marginLeft: 5
+  },
+  btnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center'
+  }
 });
 
 export default MyOffersScreen;
