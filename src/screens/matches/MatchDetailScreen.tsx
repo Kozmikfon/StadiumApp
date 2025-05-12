@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, Alert, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,44 +11,58 @@ const MatchDetailScreen = () => {
 
   const [match, setMatch] = useState<any>(null);
   const [offers, setOffers] = useState<any[]>([]);
-  const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [playerId, setPlayerId] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchMatchDetails = async () => {
+    const fetchDetails = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
+        const decoded: any = jwtDecode(token || '');
+        setPlayerId(decoded.playerId);
 
-        const [matchRes, offersRes, playersRes] = await Promise.all([
-          axios.get(`http://10.0.2.2:5275/api/Matches/${matchId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`http://10.0.2.2:5275/api/Offers`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`http://10.0.2.2:5275/api/Players`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+        const matchRes = await axios.get(`http://10.0.2.2:5275/api/Matches/${matchId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const offersRes = await axios.get(`http://10.0.2.2:5275/api/Offers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         setMatch(matchRes.data);
-        setPlayers(playersRes.data);
-
         const filteredOffers = offersRes.data.filter((o: any) => o.matchId === matchId);
         setOffers(filteredOffers);
       } catch (error) {
         console.error("❌ Match detayları alınamadı:", error);
+        Alert.alert("Hata", "Maç detayları yüklenemedi.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMatchDetails();
+    fetchDetails();
   }, [matchId]);
 
-  const getPlayerName = (playerId: number) => {
-    const player = players.find(p => p.id === playerId);
-    return player ? `${player.firstName} ${player.lastName}` : `ID: ${playerId}`;
+  const handleUpdateStatus = async (offerId: number, newStatus: string) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await axios.put(`http://10.0.2.2:5275/api/Offers/update-status/${offerId}`, `"${newStatus}"`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      Alert.alert("✅ Başarılı", `Teklif "${newStatus}" olarak güncellendi.`);
+      // Listeyi güncelle
+      const updated = offers.map(o =>
+        o.id === offerId ? { ...o, status: newStatus } : o
+      );
+      setOffers(updated);
+    } catch (error) {
+      console.error("❌ Güncelleme hatası:", error);
+      Alert.alert("Hata", "Teklif durumu güncellenemedi.");
+    }
   };
 
   if (loading) {
@@ -72,9 +86,27 @@ const MatchDetailScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.offerCard}>
-            <Text>Gönderen: {getPlayerName(item.senderId)}</Text>
-            <Text>Alıcı: {getPlayerName(item.receiverId)}</Text>
+            <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
+            <Text>Alıcı Oyuncu ID: {item.receiverId}</Text>
             <Text>Durum: {item.status}</Text>
+
+            {item.status === "Beklemede" && item.receiverId === playerId && (
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
+                  onPress={() => handleUpdateStatus(item.id, "Kabul Edildi")}
+                >
+                  <Text style={styles.statusText}>Kabul Et</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.statusButton, { backgroundColor: '#F44336' }]}
+                  onPress={() => handleUpdateStatus(item.id, "Reddedildi")}
+                >
+                  <Text style={styles.statusText}>Reddet</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
         ListEmptyComponent={<Text style={styles.empty}>Bu maça teklif gönderilmemiş.</Text>}
@@ -104,6 +136,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     fontStyle: 'italic'
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 10,
+    marginTop: 10
+  },
+  statusButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center'
+  },
+  statusText: {
+    color: 'white',
+    fontWeight: 'bold'
   }
 });
 
