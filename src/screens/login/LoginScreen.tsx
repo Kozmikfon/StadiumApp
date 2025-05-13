@@ -31,7 +31,7 @@ const LoginScreen = ({ navigation }: any) => {
 
             // Rol kontrolü ve yönlendirme
             if (role === 'Player') {
-                navigation.replace('PlayerPanel');
+                navigation.replace('PlayerProfile');
             } else if (role === 'User') {
                 navigation.replace('UserPanel');
             } else {

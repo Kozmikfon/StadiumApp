@@ -38,13 +38,26 @@ const MyOffersScreen = () => {
     }, [])
   );
 
+  const translateStatus = (status: string) => {
+    switch (status) {
+      case "Pending":
+        return "Beklemede";
+      case "Accepted":
+        return "Onaylandı";
+      case "Rejected":
+        return "Reddedildi";
+      default:
+        return status;
+    }
+  };
+
   const updateStatus = async (offerId: number, status: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
 
       const response = await axios.put(
         `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
-        `"${status}"`, // JSON string olarak gönder
+        `"${status}"`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -55,9 +68,8 @@ const MyOffersScreen = () => {
 
       const updatedOffer = response.data;
 
-      Alert.alert("✅ Başarılı", `Teklif ${status} olarak güncellendi`);
+      Alert.alert("✅ Başarılı", `Teklif ${translateStatus(status)} olarak güncellendi`);
 
-      // Güncellenen veriyi state içinde değiştir
       setOffers(prev =>
         prev.map(o => o.id === offerId ? updatedOffer : o)
       );
@@ -82,14 +94,14 @@ const MyOffersScreen = () => {
           <View style={styles.card}>
             <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
             <Text>Maç ID: {item.matchId}</Text>
-            <Text>Durum: {item.status}</Text>
+            <Text>Durum: {translateStatus(item.status)}</Text>
 
-            {item.status === 'Beklemede' && (
+            {item.status === "Pending" && (
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, "Onaylandı")}>
+                <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, "Accepted")}>
                   <Text style={styles.btnText}>Onayla</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, "Reddedildi")}>
+                <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, "Rejected")}>
                   <Text style={styles.btnText}>Reddet</Text>
                 </TouchableOpacity>
               </View>

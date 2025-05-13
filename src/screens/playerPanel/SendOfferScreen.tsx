@@ -52,7 +52,6 @@ const SendOfferScreen = () => {
         senderId,
         receiverId,
         matchId: selectedMatchId,
-        status: 'Beklemede'
       };
 
       await axios.post('http://10.0.2.2:5275/api/Offers', offerDto, {
