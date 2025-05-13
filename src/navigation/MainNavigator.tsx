@@ -17,6 +17,7 @@ import MyMatchesScreen from '../screens/matches/MyMatchesScreen';
 import SendOfferScreen from '../screens/playerPanel/SendOfferScreen';
 import MyOffersScreen from '../screens/playerPanel/MyOffersScreen';
 import MatchDetailScreen from '../screens/matches/MatchDetailScreen';
+import CreateTeamScreen from '../screens/TeamPanel/CreateTeamScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,7 @@ const MainNavigator = () => {
             <Stack.Screen name="SendOffer" component={SendOfferScreen} initialParams={{ filter: 'myOffers' }} />
             <Stack.Screen name="MyOffers" component={MyOffersScreen} />
             <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
+            <Stack.Screen name="CreateTeam" component={CreateTeamScreen} />
 
         </Stack.Navigator>
     );
