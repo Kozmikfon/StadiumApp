@@ -11,6 +11,7 @@ const MatchDetailScreen = () => {
 
   const [match, setMatch] = useState<any>(null);
   const [offers, setOffers] = useState<any[]>([]);
+  const [acceptedOffers, setAcceptedOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerId, setPlayerId] = useState<number | null>(null);
 
@@ -29,9 +30,14 @@ const MatchDetailScreen = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        const acceptedRes = await axios.get(`http://10.0.2.2:5275/api/Offers/accepted-by-match/${matchId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         setMatch(matchRes.data);
         const filteredOffers = offersRes.data.filter((o: any) => o.matchId === matchId);
         setOffers(filteredOffers);
+        setAcceptedOffers(acceptedRes.data);
       } catch (error) {
         console.error("❌ Match detayları alınamadı:", error);
         Alert.alert("Hata", "Maç detayları yüklenemedi.");
@@ -54,7 +60,6 @@ const MatchDetailScreen = () => {
       });
 
       Alert.alert("✅ Başarılı", `Teklif "${newStatus}" olarak güncellendi.`);
-      // Listeyi güncelle
       const updated = offers.map(o =>
         o.id === offerId ? { ...o, status: newStatus } : o
       );
@@ -62,6 +67,20 @@ const MatchDetailScreen = () => {
     } catch (error) {
       console.error("❌ Güncelleme hatası:", error);
       Alert.alert("Hata", "Teklif durumu güncellenemedi.");
+    }
+  };
+
+  const removeOffer = async (offerId: number) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await axios.delete(`http://10.0.2.2:5275/api/Offers/${offerId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      Alert.alert("✅ Oyuncu çıkarıldı", "Teklif başarıyla silindi.");
+      setAcceptedOffers(prev => prev.filter(o => o.id !== offerId));
+    } catch (error) {
+      console.error("❌ Oyuncu silinemedi:", error);
+      Alert.alert("Hata", "Oyuncu maçtan çıkarılamadı.");
     }
   };
 
@@ -110,6 +129,27 @@ const MatchDetailScreen = () => {
           </View>
         )}
         ListEmptyComponent={<Text style={styles.empty}>Bu maça teklif gönderilmemiş.</Text>}
+      />
+
+      <Text style={[styles.title, { fontSize: 18, marginTop: 20 }]}>✅ Maça Çıkacak Oyuncular</Text>
+      <FlatList
+        data={acceptedOffers}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.offerCard}>
+            <Text>Oyuncu : {item.receiverName}</Text>
+            <Text>Teklif Durumu: {item.status}</Text>
+            {playerId === match.team1CaptainId && (
+              <TouchableOpacity
+                onPress={() => removeOffer(item.id)}
+                style={{ backgroundColor: 'red', padding: 6, borderRadius: 6, marginTop: 6 }}
+              >
+                <Text style={{ color: 'white', textAlign: 'center' }}>❌ Maçtan Çıkar</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>Henüz kabul edilen oyuncu yok.</Text>}
       />
     </View>
   );
