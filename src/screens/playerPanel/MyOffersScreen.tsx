@@ -1,13 +1,14 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
-import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 const MyOffersScreen = () => {
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   const fetchOffers = async () => {
     try {
@@ -22,67 +23,62 @@ const MyOffersScreen = () => {
 
       setOffers(response.data);
     } catch (err) {
-      console.error("❌ Teklifler alınamadı:", err);
+      console.error('❌ Teklifler alınamadı:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchOffers();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  useEffect(() => {
     fetchOffers();
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchOffers();
-    }, [])
-  );
-
   const translateStatus = (status: string) => {
     switch (status) {
-      case "Pending":
-        return "Beklemede";
-      case "Accepted":
-        return "Onaylandı";
-      case "Rejected":
-        return "Reddedildi";
+      case 'Pending':
+        return 'Beklemede';
+      case 'Accepted':
+        return 'Onaylandı';
+      case 'Rejected':
+        return 'Reddedildi';
       default:
         return status;
     }
   };
 
- const updateStatus = async (offerId: number, status: string) => {
-  try {
-    const token = await AsyncStorage.getItem('token');
+  const updateStatus = async (offerId: number, status: string) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
 
-    const res = await axios.put(
-      `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
-      status,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
-
-    const updated = res.data;
-
-    setOffers(prev =>
-      prev.map(o => (o.id === updated.id ? updated : o))
-    );
-
-    Alert.alert("✅ Başarılı", `Teklif ${translateStatus(status)} olarak güncellendi`);
-
-  } catch (error) {
-    console.error("❌ Güncelleme hatası:", error);
-    Alert.alert("Hata", "Durum güncellenemedi.");
+      await axios.put(
+  `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
+  { Status: status }, // 👈 DTO'ya uygun!
+  {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    }
   }
-};
+);
 
 
+      Alert.alert('✅ Başarılı', `Teklif ${translateStatus(status)} olarak güncellendi`);
 
+      await fetchOffers();
 
+    } catch (error) {
+      console.error('❌ Güncelleme hatası:', error);
+      Alert.alert('Hata', 'Durum güncellenemedi.');
+    }
+  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 30 }} />;
@@ -93,25 +89,29 @@ const MyOffersScreen = () => {
       <Text style={styles.title}>📨 Gelen Teklifler</Text>
       <FlatList
         data={offers}
+        extraData={offers}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
-            <Text>Maç ID: {item.matchId}</Text>
-            <Text>Durum: {translateStatus(item.status)}</Text>
+        renderItem={({ item }) => {
+          console.log("Teklif durumu:", item.status); // LOG: gelen statü
+          return (
+            <View style={styles.card}>
+              <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
+              <Text>Maç ID: {item.matchId}</Text>
+              <Text>Durum: {translateStatus(item.status)}</Text>
 
-            {item.status === "Pending" && (
-              <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, "Accepted")}>
-                  <Text style={styles.btnText}>Onayla</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, "Rejected")}>
-                  <Text style={styles.btnText}>Reddet</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        )}
+              {item.status?.toLowerCase() === 'pending' && (
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, 'Accepted')}>
+                    <Text style={styles.btnText}>Onayla</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, 'Rejected')}>
+                    <Text style={styles.btnText}>Reddet</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          );
+        }}
         ListEmptyComponent={<Text style={styles.empty}>Henüz teklif yok.</Text>}
       />
     </View>
