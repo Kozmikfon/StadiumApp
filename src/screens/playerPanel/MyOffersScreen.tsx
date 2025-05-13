@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, ActivityIndicator, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native';
 
 const MyOffersScreen = () => {
   const [offers, setOffers] = useState<any[]>([]);
@@ -10,6 +11,7 @@ const MyOffersScreen = () => {
 
   const fetchOffers = async () => {
     try {
+      setLoading(true);
       const token = await AsyncStorage.getItem('token');
       const decoded: any = jwtDecode(token || '');
       const playerId = decoded.playerId;
@@ -30,13 +32,19 @@ const MyOffersScreen = () => {
     fetchOffers();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchOffers();
+    }, [])
+  );
+
   const updateStatus = async (offerId: number, status: string) => {
     try {
       const token = await AsyncStorage.getItem('token');
 
-      await axios.put(
+      const response = await axios.put(
         `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
-        `"${status}"`, // String olduğu için tırnak içinde gönder
+        `"${status}"`, // JSON string olarak gönder
         {
           headers: {
             'Content-Type': 'application/json',
@@ -45,17 +53,14 @@ const MyOffersScreen = () => {
         }
       );
 
+      const updatedOffer = response.data;
+
       Alert.alert("✅ Başarılı", `Teklif ${status} olarak güncellendi`);
 
-      // 👇 Anında UI güncelle
+      // Güncellenen veriyi state içinde değiştir
       setOffers(prev =>
-        prev.map(offer =>
-          offer.id === offerId ? { ...offer, status } : offer
-        )
+        prev.map(o => o.id === offerId ? updatedOffer : o)
       );
-
-      // 🔄 Ek olarak istersen sunucudan tekrar veri çek
-      // await fetchOffers();
 
     } catch (error) {
       console.error("❌ Güncelleme hatası:", error);
