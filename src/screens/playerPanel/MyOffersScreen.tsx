@@ -51,34 +51,38 @@ const MyOffersScreen = () => {
     }
   };
 
-  const updateStatus = async (offerId: number, status: string) => {
-    try {
-      const token = await AsyncStorage.getItem('token');
+ const updateStatus = async (offerId: number, status: string) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
 
-      const response = await axios.put(
-        `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
-        `"${status}"`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
+    const res = await axios.put(
+      `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
+      status,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         }
-      );
+      }
+    );
 
-      const updatedOffer = response.data;
+    const updated = res.data;
 
-      Alert.alert("✅ Başarılı", `Teklif ${translateStatus(status)} olarak güncellendi`);
+    setOffers(prev =>
+      prev.map(o => (o.id === updated.id ? updated : o))
+    );
 
-      setOffers(prev =>
-        prev.map(o => o.id === offerId ? updatedOffer : o)
-      );
+    Alert.alert("✅ Başarılı", `Teklif ${translateStatus(status)} olarak güncellendi`);
 
-    } catch (error) {
-      console.error("❌ Güncelleme hatası:", error);
-      Alert.alert("Hata", "Durum güncellenemedi.");
-    }
-  };
+  } catch (error) {
+    console.error("❌ Güncelleme hatası:", error);
+    Alert.alert("Hata", "Durum güncellenemedi.");
+  }
+};
+
+
+
+
 
   if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 30 }} />;
