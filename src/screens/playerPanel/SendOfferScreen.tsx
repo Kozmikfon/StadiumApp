@@ -15,6 +15,7 @@ const SendOfferScreen = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<number>(0);
   const [senderId, setSenderId] = useState<number | null>(null);
+  const [acceptedCount, setAcceptedCount] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -33,6 +34,11 @@ const SendOfferScreen = () => {
 
     init();
   }, []);
+
+    if (acceptedCount >= 14) {
+  Alert.alert("⚠️ Uyarı", "Bu maç dolu. Başka maç seçin.");
+  return;
+    }
 
   const handleSendOffer = async () => {
     if (!senderId || !receiverId || selectedMatchId === 0) {
@@ -68,6 +74,17 @@ const SendOfferScreen = () => {
     }
   };
 
+  //maça cıkacak oyuncu sayısını al
+  const fetchAcceptedCount = async () => {
+  try {
+    const res = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${selectedMatchId}`);
+    setAcceptedCount(res.data);
+  } catch (err) {
+    console.error("Teklif sayısı alınamadı:", err);
+  }
+};
+
+
   if (loading) {
     return <ActivityIndicator size="large" color="#1976D2" style={{ marginTop: 30 }} />;
   }
@@ -94,6 +111,12 @@ const SendOfferScreen = () => {
       </Picker>
 
       <Button title="➕ Teklif Gönder" color="#2E7D32" onPress={handleSendOffer} />
+      {acceptedCount >= 14 ? (
+  <Text style={{ color: 'red', marginTop: 10 }}>🛑 Bu maç dolu</Text>
+) : (
+  <Button title="➕ Teklif Gönder" color="#2E7D32" onPress={handleSendOffer} />
+)}
+
     </View>
   );
 };
