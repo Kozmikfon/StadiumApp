@@ -86,9 +86,9 @@ const MatchList = ({ navigation }: any) => {
         <Text style={styles.title}>📅 Maçlar</Text>
         <Button title="➕ Maç Oluştur" onPress={() => navigation.navigate('CreateMatch')} />
           <Button title="📋 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
-            
+                        
       </View>
-
+      <Button title="🛡 Takım Oluştur" color="#6A1B9A" onPress={() => navigation.navigate('CreateTeam')} />
       {matches.length === 0 ? (
         <Text style={styles.empty}>Henüz maç bulunamadı.</Text>
       ) : (
@@ -107,7 +107,6 @@ const MatchList = ({ navigation }: any) => {
     </Text>
   </TouchableOpacity>
 )}
-
         />
       )}
     </View>
