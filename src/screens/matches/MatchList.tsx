@@ -18,34 +18,50 @@ const MatchList = ({ navigation }: any) => {
   }, [filter, refresh, isFocused]);
 
   const fetchMatches = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('http://10.0.2.2:5275/api/Matches');
-      let filteredMatches = response.data;
+  try {
+    setLoading(true);
+    const response = await axios.get('http://10.0.2.2:5275/api/Matches');
+    let filteredMatches = response.data;
 
-      if (filter === 'today') {
-        const today = new Date().toISOString().split('T')[0];
-        filteredMatches = filteredMatches.filter((m: any) =>
-          new Date(m.matchDate).toISOString().startsWith(today)
-        );
-      } else if (filter === 'week') {
-        const today = new Date();
-        const weekEnd = new Date();
-        weekEnd.setDate(today.getDate() + 7);
+    // Maçlara ait teklif sayılarını çek
+    const matchesWithCounts = await Promise.all(
+      filteredMatches.map(async (match: any) => {
+        try {
+          const countRes = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${match.id}`);
+          return { ...match, acceptedCount: countRes.data };
+        } catch {
+          return { ...match, acceptedCount: 0 }; // hata olursa 0 say
+        }
+      })
+    );
 
-        filteredMatches = filteredMatches.filter((m: any) => {
-          const matchDate = new Date(m.matchDate);
-          return matchDate >= today && matchDate <= weekEnd;
-        });
-      }
+    // Tarih filtrelemesini sayı ekledikten sonra yap
+    if (filter === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      filteredMatches = matchesWithCounts.filter((m: any) =>
+        new Date(m.matchDate).toISOString().startsWith(today)
+      );
+    } else if (filter === 'week') {
+      const today = new Date();
+      const weekEnd = new Date();
+      weekEnd.setDate(today.getDate() + 7);
 
-      setMatches(filteredMatches);
-    } catch (error) {
-      console.error('❌ Maçlar alınamadı:', error);
-    } finally {
-      setLoading(false);
+      filteredMatches = matchesWithCounts.filter((m: any) => {
+        const matchDate = new Date(m.matchDate);
+        return matchDate >= today && matchDate <= weekEnd;
+      });
+    } else {
+      filteredMatches = matchesWithCounts;
     }
-  };
+
+    setMatches(filteredMatches);
+  } catch (error) {
+    console.error('❌ Maçlar alınamadı:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // takıma katılma
   const handleJoin = async (teamId: number) => {
@@ -97,16 +113,30 @@ const MatchList = ({ navigation }: any) => {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
   <TouchableOpacity
-    style={styles.card}
-    onPress={() => navigation.navigate('MatchDetail', { matchId: item.id })}
+    style={[styles.card, item.acceptedCount >= 14 && { backgroundColor: '#ccc' }]}
+    onPress={() =>
+      item.acceptedCount >= 14
+        ? Alert.alert("Bu maç dolu", "Maç 14 oyuncuya ulaştı.")
+        : navigation.navigate('MatchDetail', { matchId: item.id })
+    }
   >
-    <Text style={styles.matchTeams}>{item.team1Name} vs {item.team2Name}</Text>
+    <Text style={styles.matchTeams}>
+      {item.team1Name} vs {item.team2Name}
+    </Text>
     <Text style={styles.field}>Saha: {item.fieldName}</Text>
     <Text style={styles.date}>
-      Tarih: {new Date(item.matchDate).toLocaleDateString()} - {new Date(item.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      Tarih: {new Date(item.matchDate).toLocaleDateString()} -{" "}
+      {new Date(item.matchDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
     </Text>
+    <Text style={{ color: item.acceptedCount >= 14 ? "red" : "green", fontWeight: "bold" }}>
+      {item.acceptedCount}/14 Oyuncu
+    </Text>
+    {item.acceptedCount >= 14 && (
+      <Text style={{ color: "red", fontWeight: "bold" }}>🛑 Maç Dolu</Text>
+    )}
   </TouchableOpacity>
 )}
+
         />
       )}
     </View>

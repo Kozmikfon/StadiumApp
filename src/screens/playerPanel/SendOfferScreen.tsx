@@ -17,6 +17,16 @@ const SendOfferScreen = () => {
   const [senderId, setSenderId] = useState<number | null>(null);
   const [acceptedCount, setAcceptedCount] = useState(0);
 
+  // ✔️ Teklif sayısını çek
+  const fetchAcceptedCount = async (matchId: number) => {
+    try {
+      const res = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${matchId}`);
+      setAcceptedCount(res.data);
+    } catch (err) {
+      console.error("❌ Teklif sayısı alınamadı:", err);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -35,20 +45,23 @@ const SendOfferScreen = () => {
     init();
   }, []);
 
-    if (acceptedCount >= 14) {
-  Alert.alert("⚠️ Uyarı", "Bu maç dolu. Başka maç seçin.");
-  return;
+  // ✔️ Maç seçimi değiştiğinde sayı güncelle
+  useEffect(() => {
+    if (selectedMatchId !== 0) {
+      fetchAcceptedCount(selectedMatchId);
     }
+  }, [selectedMatchId]);
 
   const handleSendOffer = async () => {
     if (!senderId || !receiverId || selectedMatchId === 0) {
       Alert.alert('⚠️ Eksik Bilgi', 'Lütfen tüm alanları doldurun.');
       return;
     }
-    console.log("senderId:", senderId);
-    console.log("receiverId:", receiverId);
-    console.log("selectedMatchId:", selectedMatchId);
 
+    if (acceptedCount >= 14) {
+      Alert.alert("⚠️ Uyarı", "Bu maç dolu. Başka maç seçin.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -73,17 +86,6 @@ const SendOfferScreen = () => {
       setLoading(false);
     }
   };
-
-  //maça cıkacak oyuncu sayısını al
-  const fetchAcceptedCount = async () => {
-  try {
-    const res = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${selectedMatchId}`);
-    setAcceptedCount(res.data);
-  } catch (err) {
-    console.error("Teklif sayısı alınamadı:", err);
-  }
-};
-
 
   if (loading) {
     return <ActivityIndicator size="large" color="#1976D2" style={{ marginTop: 30 }} />;
@@ -110,13 +112,11 @@ const SendOfferScreen = () => {
         ))}
       </Picker>
 
-      <Button title="➕ Teklif Gönder" color="#2E7D32" onPress={handleSendOffer} />
       {acceptedCount >= 14 ? (
-  <Text style={{ color: 'red', marginTop: 10 }}>🛑 Bu maç dolu</Text>
-) : (
-  <Button title="➕ Teklif Gönder" color="#2E7D32" onPress={handleSendOffer} />
-)}
-
+        <Text style={{ color: 'red', marginTop: 10 }}>🛑 Bu maç dolu</Text>
+      ) : (
+        <Button title="➕ Teklif Gönder" color="#2E7D32" onPress={handleSendOffer} />
+      )}
     </View>
   );
 };
