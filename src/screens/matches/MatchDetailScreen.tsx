@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, Alert, TouchableOpacity, Button } from 'react-native';
 import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
-const MatchDetailScreen = () => {
+const MatchDetailScreen =({ navigation }: any) => {
   const route = useRoute<any>();
   const { matchId } = route.params;
 
@@ -14,6 +14,8 @@ const MatchDetailScreen = () => {
   const [acceptedOffers, setAcceptedOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerId, setPlayerId] = useState<number | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [showReviews, setShowReviews] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -46,7 +48,18 @@ const MatchDetailScreen = () => {
       }
     };
 
+    const fetchReviews = async () => {
+      try {
+        const res = await axios.get(`http://10.0.2.2:5275/api/Reviews`);
+        const onlyThisMatch = res.data.filter((r: any) => r.matchId === matchId);
+        setReviews(onlyThisMatch);
+      } catch (err) {
+        console.error("❌ Yorumlar alınamadı:", err);
+      }
+    };
+
     fetchDetails();
+    fetchReviews();
   }, [matchId]);
 
   const handleUpdateStatus = async (offerId: number, newStatus: string) => {
@@ -150,6 +163,39 @@ const MatchDetailScreen = () => {
           </View>
         )}
         ListEmptyComponent={<Text style={styles.empty}>Henüz kabul edilen oyuncu yok.</Text>}
+      />
+
+      <TouchableOpacity
+        onPress={() => setShowReviews(!showReviews)}
+        style={{ backgroundColor: '#1976D2', padding: 10, borderRadius: 6, marginTop: 20 }}
+      >
+        <Text style={{ color: 'white', textAlign: 'center' }}>{showReviews ? '⬆️ Yorumları Gizle' : '💬 Yorumları Göster'}</Text>
+      </TouchableOpacity>
+
+      {showReviews && (
+        <>
+          <Text style={[styles.title, { fontSize: 18, marginTop: 20 }]}>🗣 Yorumlar</Text>
+          {reviews.length === 0 ? (
+            <Text style={styles.empty}>Henüz yorum yapılmamış.</Text>
+          ) : (
+            <FlatList
+              data={reviews}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.offerCard}>
+                  <Text>⭐ Puan: {item.rating}</Text>
+                  <Text>💬 Yorum: {item.comment}</Text>
+                </View>
+              )}
+            />
+          )}
+        </>
+      )}
+
+      <Button
+        title="📝 Değerlendirme Yap"
+        color="#6A1B9A"
+        onPress={() => navigation.navigate('CreateReview', { matchId: match.id })}
       />
     </View>
   );
