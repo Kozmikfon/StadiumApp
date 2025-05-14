@@ -27,8 +27,22 @@ const MyMatchesScreen = ({ navigation }: any) => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        // 3️⃣ Filtrele (team1 benim takımım)
-        const filtered = matchRes.data.filter((m: any) => m.team1Id === myTeamId);
+        const allMatches = matchRes.data;
+
+        // 3️⃣ Her maç için kabul edilen oyuncu sayısını al
+        const withCounts = await Promise.all(
+          allMatches.map(async (match: any) => {
+            const countRes = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${match.id}`);
+            return {
+              ...match,
+              acceptedCount: countRes.data,
+              remaining: 14 - countRes.data,
+              isFull: countRes.data >= 14
+            };
+          })
+        );
+
+        const filtered = withCounts.filter((m: any) => m.team1Id === myTeamId);
         setMatches(filtered);
       } catch (err) {
         console.error('❌ Maçlar alınamadı:', err);
@@ -55,6 +69,11 @@ const MyMatchesScreen = ({ navigation }: any) => {
             <Text style={styles.teamText}>{item.team1Name} vs {item.team2Name}</Text>
             <Text>Saha: {item.fieldName}</Text>
             <Text>Tarih: {new Date(item.matchDate).toLocaleString()}</Text>
+            <Text>✅ Maça çıkacak: {item.acceptedCount} / 14</Text>
+            <Text>📌 Kalan kontenjan: {item.remaining}</Text>
+            <Text style={{ color: item.isFull ? 'red' : 'green' }}>
+              {item.isFull ? '🛑 Maç Dolu' : '🟢 Teklif Verilebilir'}
+            </Text>
 
             <TouchableOpacity
               style={styles.detailButton}
