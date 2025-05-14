@@ -111,6 +111,10 @@ const SendOfferScreen = () => {
           />
         ))}
       </Picker>
+      <Text style={{ marginTop: 5, color: '#555', marginBottom: 10 }}>
+  {acceptedCount}/14 oyuncu — {14 - acceptedCount} boş yer
+</Text>
+
 
       {acceptedCount >= 14 ? (
         <Text style={{ color: 'red', marginTop: 10 }}>🛑 Bu maç dolu</Text>

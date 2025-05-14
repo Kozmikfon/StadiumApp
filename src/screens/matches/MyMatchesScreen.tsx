@@ -1,58 +1,84 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Button, Alert, TouchableOpacity } from 'react-native';
 import axios from 'axios';
+import { useIsFocused, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
-const MyMatchesScreen = ({ navigation }: any) => {
+const MatchList = ({ navigation }: any) => {
+  const route = useRoute<any>();
+  const { filter, refresh } = route.params || {};
+  const isFocused = useIsFocused();
+
   const [matches, setMatches] = useState<any[]>([]);
+  const [acceptedCounts, setAcceptedCounts] = useState<{ [key: number]: number }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMyMatches = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const decoded: any = jwtDecode(token || '');
-        const userId = decoded.userId;
+    fetchMatches();
+  }, [filter, refresh, isFocused]);
 
-        // 1️⃣ Oyuncunun takımı
-        const playerRes = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+  const fetchMatches = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://10.0.2.2:5275/api/Matches');
+      let filteredMatches = response.data;
 
-        const myTeamId = playerRes.data.teamId;
-
-        // 2️⃣ Tüm maçları getir
-        const matchRes = await axios.get(`http://10.0.2.2:5275/api/Matches`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        const allMatches = matchRes.data;
-
-        // 3️⃣ Her maç için kabul edilen oyuncu sayısını al
-        const withCounts = await Promise.all(
-          allMatches.map(async (match: any) => {
-            const countRes = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${match.id}`);
-            return {
-              ...match,
-              acceptedCount: countRes.data,
-              remaining: 14 - countRes.data,
-              isFull: countRes.data >= 14
-            };
-          })
+      if (filter === 'today') {
+        const today = new Date().toISOString().split('T')[0];
+        filteredMatches = filteredMatches.filter((m: any) =>
+          new Date(m.matchDate).toISOString().startsWith(today)
         );
+      } else if (filter === 'week') {
+        const today = new Date();
+        const weekEnd = new Date();
+        weekEnd.setDate(today.getDate() + 7);
 
-        const filtered = withCounts.filter((m: any) => m.team1Id === myTeamId);
-        setMatches(filtered);
-      } catch (err) {
-        console.error('❌ Maçlar alınamadı:', err);
-      } finally {
-        setLoading(false);
+        filteredMatches = filteredMatches.filter((m: any) => {
+          const matchDate = new Date(m.matchDate);
+          return matchDate >= today && matchDate <= weekEnd;
+        });
       }
-    };
 
-    fetchMyMatches();
-  }, []);
+      setMatches(filteredMatches);
+
+      // Accepted countları al
+      for (const match of filteredMatches) {
+        const countRes = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${match.id}`);
+        setAcceptedCounts(prev => ({ ...prev, [match.id]: countRes.data }));
+      }
+
+    } catch (error) {
+      console.error('❌ Maçlar alınamadı:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJoin = async (teamId: number) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const decoded: any = jwtDecode(token || '');
+      const playerId = decoded.playerId;
+
+      await axios.post('http://10.0.2.2:5275/api/TeamMembers', {
+        teamId,
+        playerId
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      Alert.alert("Başarılı", "Takıma katıldınız!");
+      navigation.replace('PlayerProfile');
+
+    } catch (error: any) {
+      if (error.response && error.response.status === 400) {
+        Alert.alert("⚠️ Uyarı", error.response.data);
+      } else {
+        Alert.alert("❌ Hata", "Takıma katılamadınız.");
+      }
+    }
+  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 30 }} />;
@@ -60,54 +86,105 @@ const MyMatchesScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📋 Maçlarım</Text>
-      <FlatList
-        data={matches}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.teamText}>{item.team1Name} vs {item.team2Name}</Text>
-            <Text>Saha: {item.fieldName}</Text>
-            <Text>Tarih: {new Date(item.matchDate).toLocaleString()}</Text>
-            <Text>✅ Maça çıkacak: {item.acceptedCount} / 14</Text>
-            <Text>📌 Kalan kontenjan: {item.remaining}</Text>
-            <Text style={{ color: item.isFull ? 'red' : 'green' }}>
-              {item.isFull ? '🛑 Maç Dolu' : '🟢 Teklif Verilebilir'}
-            </Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>📅 Maçlar</Text>
+        <Button title="➕ Maç Oluştur" onPress={() => navigation.navigate('CreateMatch')} />
+        <Button title="📋 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
+      </View>
+      <Button title="🛡 Takım Oluştur" color="#6A1B9A" onPress={() => navigation.navigate('CreateTeam')} />
 
-            <TouchableOpacity
-              style={styles.detailButton}
-              onPress={() => navigation.navigate('MatchDetail', { matchId: item.id })}
-            >
-              <Text style={styles.detailButtonText}>📄 Detay</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>Henüz maçınız yok.</Text>}
-      />
+      {matches.length === 0 ? (
+        <Text style={styles.empty}>Henüz maç bulunamadı.</Text>
+      ) : (
+        <FlatList
+          data={matches}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => {
+            const accepted = acceptedCounts[item.id] || 0;
+            const remaining = 14 - accepted;
+
+            return (
+              <View style={styles.card}>
+                <Text style={styles.matchTeams}>{item.team1Name} vs {item.team2Name}</Text>
+                <Text style={styles.field}>Saha: {item.fieldName}</Text>
+                <Text style={styles.date}>
+                  Tarih: {new Date(item.matchDate).toLocaleDateString()} - {new Date(item.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                <Text style={styles.status}>🧍 Oyuncu: {accepted} / 14</Text>
+                <Text style={styles.status}>🎯 Kalan: {remaining} kişi</Text>
+
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: remaining > 0 ? '#2E7D32' : 'gray' }]}
+                  disabled={remaining === 0}
+                  onPress={() => navigation.navigate('SendOfferToMatch', { matchId: item.id })}
+                >
+                  <Text style={styles.buttonText}>{remaining === 0 ? '🛑 Maç Dolu' : '➕ Teklif Gönder'}</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }}
+        />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15 },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff'
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold'
+  },
+  empty: {
+    textAlign: 'center',
+    marginTop: 30,
+    color: 'gray'
+  },
   card: {
     backgroundColor: '#f4f4f4',
     padding: 15,
     borderRadius: 10,
-    marginBottom: 10
+    marginBottom: 15
   },
-  teamText: { fontSize: 16, fontWeight: 'bold' },
-  detailButton: {
+  matchTeams: {
+    fontSize: 18,
+    fontWeight: 'bold'
+  },
+  field: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 5
+  },
+  date: {
+    fontSize: 14,
+    color: '#333',
+    marginTop: 3
+  },
+  status: {
+    marginTop: 5,
+    fontSize: 14,
+    color: '#000'
+  },
+  button: {
     marginTop: 10,
-    backgroundColor: '#1976D2',
-    paddingVertical: 8,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 6,
     alignItems: 'center'
   },
-  detailButtonText: { color: 'white', fontWeight: 'bold' },
-  empty: { textAlign: 'center', marginTop: 30 }
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold'
+  }
 });
 
-export default MyMatchesScreen;
+export default MatchList;
