@@ -55,7 +55,7 @@ const TeamList = ({ navigation }: any) => {
       );
 
       Alert.alert("✅ Başarılı", "Takıma katıldınız!");
-      navigation.replace('PlayerPanel');
+      navigation.replace('PlayerProfile');
 
     } catch (error: any) {
       console.error("❌ Katılım hatası:", error);

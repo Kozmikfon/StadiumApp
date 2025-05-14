@@ -12,6 +12,7 @@ const CreateMatchScreen = ({ navigation }: any) => {
   const [fieldName, setFieldName] = useState('');
   const [matchDate, setMatchDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [hasTeam, setHasTeam] = useState(true);
   const [teams, setTeams] = useState<any[]>([]);
 
@@ -57,10 +58,29 @@ const CreateMatchScreen = ({ navigation }: any) => {
     }
   };
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);
-    if (selectedDate) setMatchDate(selectedDate);
-  };
+const handleDateChange = (_: any, selectedDate?: Date) => {
+  setShowDatePicker(false);
+  if (selectedDate) {
+    // Tarihi set et, saati koru
+    const updated = new Date(matchDate);
+    updated.setFullYear(selectedDate.getFullYear());
+    updated.setMonth(selectedDate.getMonth());
+    updated.setDate(selectedDate.getDate());
+    setMatchDate(updated);
+    setShowTimePicker(true); // sonra saat seçtir
+  }
+};
+
+const handleTimeChange = (_: any, selectedTime?: Date) => {
+  setShowTimePicker(false);
+  if (selectedTime) {
+    const updated = new Date(matchDate);
+    updated.setHours(selectedTime.getHours());
+    updated.setMinutes(selectedTime.getMinutes());
+    setMatchDate(updated);
+  }
+};
+
 
   const handleCreateMatch = async () => {
     if (!team1Id || !team2Id || !fieldName || !matchDate) {
@@ -128,20 +148,33 @@ const CreateMatchScreen = ({ navigation }: any) => {
           />
 
           <Text style={styles.label}>Tarih</Text>
-          <Pressable onPress={() => setShowDatePicker(true)}>
-            <Text style={styles.dateInput}>
-              {matchDate.toLocaleDateString()} {matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </Pressable>
+         <Pressable onPress={() => setShowDatePicker(true)}>
+  <Text style={styles.dateInput}>
+    {matchDate.toLocaleDateString()} {matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+  </Text>
+</Pressable>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={matchDate}
-              mode="datetime"
-              display={Platform.OS === 'android' ? 'spinner' : 'default'}
-              onChange={handleDateChange}
-            />
-          )}
+
+{showDatePicker && (
+  <DateTimePicker
+    value={matchDate}
+    mode="date"
+    display="default"
+    onChange={handleDateChange}
+  />
+)}
+
+{showTimePicker && (
+  <DateTimePicker
+    value={matchDate}
+    mode="time"
+    display="default"
+    onChange={handleTimeChange}
+  />
+)}
+
+
+
 
           <Button title="➕ Maçı Oluştur" onPress={handleCreateMatch} />
         </>
