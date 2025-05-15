@@ -87,54 +87,63 @@ const MyOffersScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📨 Bekleyen Teklifler</Text>
-      <FlatList
-        data={pendingOffers}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
-            <Text>Maç ID: {item.matchId}</Text>
-            <Text>Durum: {translateStatus(item.status)}</Text>
+      // PENDING OFFERS
+<Text style={styles.title}>📨 Bekleyen Teklifler</Text>
+<FlatList
+  data={pendingOffers}
+  keyExtractor={(item) => item.id.toString()}
+  renderItem={({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.label}>📅 Maç: {new Date(item.matchDate).toLocaleDateString()}</Text>
+      <Text style={styles.label}>📍 Saha: {item.fieldName}</Text>
+      <Text style={styles.label}>🧑‍✈️ Kaptan: {item.captainName}</Text>
+      <Text style={styles.label}>📨 Durum: {translateStatus(item.status)}</Text>
 
-            <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, 'Accepted')}>
-                <Text style={styles.btnText}>Onayla</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, 'Rejected')}>
-                <Text style={styles.btnText}>Reddet</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>Henüz bekleyen teklif yok.</Text>}
-      />
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, 'Accepted')}>
+          <Text style={styles.btnText}>✅ Onayla</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, 'Rejected')}>
+          <Text style={styles.btnText}>❌ Reddet</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  )}
+  ListEmptyComponent={<Text style={styles.empty}>Henüz bekleyen teklif yok.</Text>}
+/>
 
-      <Text style={styles.title}>✅ Kabul Ettiklerim</Text>
-      <FlatList
-        data={acceptedOffers}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text>Maç ID: {item.matchId}</Text>
-            <Text>Durum: {translateStatus(item.status)}</Text>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>Hiçbir maçı kabul etmediniz.</Text>}
-      />
+{/* ACCEPTED OFFERS */}
+<Text style={styles.title}>✅ Kabul Ettiklerim</Text>
+<FlatList
+  data={acceptedOffers}
+  keyExtractor={(item) => item.id.toString()}
+  renderItem={({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.label}>📅 Maç: {new Date(item.matchDate).toLocaleDateString()}</Text>
+      <Text style={styles.label}>📍 Saha: {item.fieldName}</Text>
+      <Text style={styles.label}>🧑‍✈️ Kaptan: {item.captainName}</Text>
+      <Text style={styles.label}>📨 Durum: {translateStatus(item.status)}</Text>
+    </View>
+  )}
+  ListEmptyComponent={<Text style={styles.empty}>Hiçbir maçı kabul etmediniz.</Text>}
+/>
 
-      <Text style={styles.title}>❌ Reddettiklerim</Text>
-      <FlatList
-        data={rejectedOffers}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text>Maç ID: {item.matchId}</Text>
-            <Text>Durum: {translateStatus(item.status)}</Text>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>Henüz reddettiğiniz teklif yok.</Text>}
-      />
+{/* REJECTED OFFERS */}
+<Text style={styles.title}>❌ Reddettiklerim</Text>
+<FlatList
+  data={rejectedOffers}
+  keyExtractor={(item) => item.id.toString()}
+  renderItem={({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.label}>📅 Maç: {new Date(item.matchDate).toLocaleDateString()}</Text>
+      <Text style={styles.label}>📍 Saha: {item.fieldName}</Text>
+      <Text style={styles.label}>🧑‍✈️ Kaptan: {item.captainName}</Text>
+      <Text style={styles.label}>📨 Durum: {translateStatus(item.status)}</Text>
+    </View>
+  )}
+  ListEmptyComponent={<Text style={styles.empty}>Henüz reddettiğiniz teklif yok.</Text>}
+/>
+
     </View>
   );
 };
@@ -148,6 +157,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10
   },
+  label: {
+  fontSize: 15,
+  marginBottom: 4
+},
+
   empty: { textAlign: 'center', marginTop: 10, fontSize: 16 },
   buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   acceptBtn: {
