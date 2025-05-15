@@ -5,61 +5,88 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 const EditPlayerProfileScreen = ({ navigation }: any) => {
-  const [playerId, setPlayerId] = useState<number | null>(null);
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     position: '',
-    skillLevel: 0,
-    rating: 0,
-    createAd: '',
-    teamId: null as number | null,
   });
+
+  const [playerId, setPlayerId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPlayer = async () => {
-      const token = await AsyncStorage.getItem('token');
-      if (token) {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) return;
+
         const decoded: any = jwtDecode(token);
-        const id = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+        const id = decoded.playerId; // ya da playerId
+
         setPlayerId(id);
 
-        const res = await axios.get(`http://localhost:5275/api/Players/${id}`);
-        setForm(res.data);
+        const res = await axios.get(`http://10.0.2.2:5275/api/Players/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setForm({
+          email: res.data.email || '',
+          position: res.data.position || '',
+        });
+      } catch (error) {
+        Alert.alert('Hata', 'Profil bilgisi alınamadı');
+        console.error("GET HATASI", error);
       }
     };
 
     fetchPlayer();
   }, []);
 
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async () => {
     try {
-      await axios.put(`http://localhost:5275/api/Players/${playerId}`, form);
+      const token = await AsyncStorage.getItem('token');
+      if (!token || !playerId) return;
+
+      console.log("Giden veri:", form);
+
+      await axios.put(
+        `http://10.0.2.2:5275/api/Players/${playerId}`,
+        form,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
       Alert.alert('Başarılı', 'Profiliniz güncellendi.');
       navigation.goBack();
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Hata', 'Profil güncellenemedi.');
+    } catch (error: any) {
+      console.error("PUT HATASI:", error.response?.data || error.message);
+      Alert.alert('Hata', 'Güncelleme başarısız. Lütfen e-posta ve pozisyon girin.');
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profilini Güncelle</Text>
+      <Text style={styles.title}>📧 Profilini Güncelle</Text>
 
-      <TextInput style={styles.input} placeholder="Ad" value={form.firstName} onChangeText={(text) => handleChange('firstName', text)} />
-      <TextInput style={styles.input} placeholder="Soyad" value={form.lastName} onChangeText={(text) => handleChange('lastName', text)} />
-      <TextInput style={styles.input} placeholder="Email" value={form.email} onChangeText={(text) => handleChange('email', text)} />
-      <TextInput style={styles.input} placeholder="Pozisyon" value={form.position} onChangeText={(text) => handleChange('position', text)} />
-      <TextInput style={styles.input} placeholder="Seviye" keyboardType="numeric" value={form.skillLevel.toString()} onChangeText={(text) => handleChange('skillLevel', parseInt(text))} />
-      <TextInput style={styles.input} placeholder="Puan" keyboardType="numeric" value={form.rating.toString()} onChangeText={(text) => handleChange('rating', parseFloat(text))} />
-      <TextInput style={styles.input} placeholder="Oluşturulma Tarihi" value={form.createAd?.slice(0, 10)} onChangeText={(text) => handleChange('createAd', text)} />
-      <TextInput style={styles.input} placeholder="Takım ID" keyboardType="numeric" value={form.teamId ? form.teamId.toString() : ''} onChangeText={(text) => handleChange('teamId', text ? parseInt(text) : null)} />
+      <TextInput
+        placeholder="Email"
+        style={styles.input}
+        value={form.email}
+        onChangeText={(text) => handleChange('email', text)}
+      />
+
+      <TextInput
+        placeholder="Pozisyon"
+        style={styles.input}
+        value={form.position}
+        onChangeText={(text) => handleChange('position', text)}
+      />
 
       <TouchableOpacity onPress={handleSubmit} style={styles.button}>
         <Text style={styles.buttonText}>Kaydet</Text>
