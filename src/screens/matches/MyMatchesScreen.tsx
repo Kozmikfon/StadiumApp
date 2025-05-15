@@ -116,7 +116,7 @@ const MatchList = ({ navigation }: any) => {
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: remaining > 0 ? '#2E7D32' : 'gray' }]}
                   disabled={remaining === 0}
-                  onPress={() => navigation.navigate('SendOfferToMatch', { matchId: item.id })}
+                  onPress={() => navigation.navigate('SendOffer', { matchId: item.id })}
                 >
                   <Text style={styles.buttonText}>{remaining === 0 ? '🛑 Maç Dolu' : '➕ Teklif Gönder'}</Text>
                 </TouchableOpacity>

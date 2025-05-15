@@ -109,158 +109,124 @@ const MatchDetailScreen =({ navigation }: any) => {
     return <ActivityIndicator size="large" color="#1976D2" style={{ marginTop: 30 }} />;
   }
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🏟 Maç Detayı</Text>
+ return (
+  <View style={styles.container}>
+    <Text style={styles.title}>🏟 Maç Detayı</Text>
 
-      <View style={styles.card}>
-        <Text><Text style={styles.label}>Saha:</Text> {match.fieldName}</Text>
-        <Text><Text style={styles.label}>Tarih:</Text> {new Date(match.matchDate).toLocaleString()}</Text>
-        <Text><Text style={styles.label}>Takım 1:</Text> {match.team1Name}</Text>
-        <Text><Text style={styles.label}>Takım 2:</Text> {match.team2Name}</Text>
-      </View>
+    <View style={styles.card}>
+      <Text><Text style={styles.label}>Saha:</Text> {match.fieldName}</Text>
+      <Text><Text style={styles.label}>Tarih:</Text> {new Date(match.matchDate).toLocaleString()}</Text>
+      <Text><Text style={styles.label}>Takım 1:</Text> {match.team1Name}</Text>
+      <Text><Text style={styles.label}>Takım 2:</Text> {match.team2Name}</Text>
+    </View>
 
-      <Text style={[styles.title, { fontSize: 18 }]}>📨 Gelen Teklifler</Text>
-      <FlatList
-        data={offers}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.offerCard}>
-            <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
-            <Text>Alıcı Oyuncu ID: {item.receiverId}</Text>
-            <Text>Durum: {item.status}</Text>
+    <Text style={[styles.title, { fontSize: 18 }]}>📨 Gelen Teklifler</Text>
+    <FlatList
+      data={offers}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => (
+        <View style={styles.offerCard}>
+          <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
+          <Text>Alıcı Oyuncu ID: {item.receiverId}</Text>
+          <Text>Durum: {item.status}</Text>
 
-            {item.status === "Beklemede" && item.receiverId === playerId && (
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
-                  onPress={() => handleUpdateStatus(item.id, "Kabul Edildi")}
-                >
-                  <Text style={styles.statusText}>Kabul Et</Text>
-                </TouchableOpacity>
+          {item.status === "Beklemede" && item.receiverId === playerId && (
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
+                onPress={() => handleUpdateStatus(item.id, "Kabul Edildi")}
+              >
+                <Text style={styles.statusText}>Kabul Et</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.statusButton, { backgroundColor: '#F44336' }]}
-                  onPress={() => handleUpdateStatus(item.id, "Reddedildi")}
-                >
-                  <Text style={styles.statusText}>Reddet</Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.statusButton, { backgroundColor: '#F44336' }]}
+                onPress={() => handleUpdateStatus(item.id, "Reddedildi")}
+              >
+                <Text style={styles.statusText}>Reddet</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
+      ListEmptyComponent={<Text style={styles.empty}>Bu maça teklif gönderilmemiş.</Text>}
+    />
+
+    <Text style={[styles.title, { fontSize: 18, marginTop: 20 }]}>✅ Maça Çıkacak Oyuncular</Text>
+    <FlatList
+      data={acceptedOffers}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => (
+        <View style={styles.playerCard}>
+          <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.receiverName}</Text>
+          <Text>Teklif Durumu: {item.status}</Text>
+
+          {playerStats[item.receiverId] ? (
+            <View style={styles.playerStats}>
+              <Text>🎮 Maç: {playerStats[item.receiverId].totalMatches}</Text>
+              <Text>📨 Teklif: {playerStats[item.receiverId].totalOffers}</Text>
+              <Text>📈 Puan: {playerStats[item.receiverId].averageRating}</Text>
+              <Text>📅 Üyelik: {playerStats[item.receiverId].membershipDays} gün</Text>
+            </View>
+          ) : (
+            <Text style={{ fontStyle: 'italic', color: '#999' }}>Yükleniyor...</Text>
+          )}
+
+          <Button
+            title="📝 Değerlendir"
+            color="#6A1B9A"
+            onPress={() =>
+              navigation.navigate('CreateReview', {
+                matchId: match.id,
+                reviewedUserId: item.receiverId
+              })
+            }
+          />
+
+          {match.team1CaptainId === playerId && (
+            <TouchableOpacity
+              onPress={() => removeOffer(item.id)}
+              style={{ backgroundColor: 'red', padding: 6, borderRadius: 6, marginTop: 6 }}
+            >
+              <Text style={{ color: 'white', textAlign: 'center' }}>❌ Oyuncuyu Çıkar</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+      ListEmptyComponent={<Text style={styles.empty}>Henüz kabul edilen oyuncu yok.</Text>}
+    />
+
+    <TouchableOpacity
+      onPress={() => setShowReviews(!showReviews)}
+      style={{ backgroundColor: '#1976D2', padding: 10, borderRadius: 6, marginTop: 20 }}
+    >
+      <Text style={{ color: 'white', textAlign: 'center' }}>
+        {showReviews ? '⬆️ Yorumları Gizle' : '💬 Yorumları Göster'}
+      </Text>
+    </TouchableOpacity>
+
+    {showReviews && (
+      <>
+        <Text style={[styles.title, { fontSize: 18, marginTop: 20 }]}>🗣 Yorumlar</Text>
+        {reviews.length === 0 ? (
+          <Text style={styles.empty}>Henüz yorum yapılmamış.</Text>
+        ) : (
+          <FlatList
+            data={reviews}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.offerCard}>
+                <Text>⭐ Puan: {item.rating}</Text>
+                <Text>💬 Yorum: {item.comment}</Text>
               </View>
             )}
-          </View>
+          />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Bu maça teklif gönderilmemiş.</Text>}
-      />
-
-      <Text style={[styles.title, { fontSize: 18, marginTop: 20 }]}>✅ Maça Çıkacak Oyuncular</Text>
-      <FlatList
-  data={acceptedOffers}
-  keyExtractor={(item) => item.id.toString()}
-  renderItem={({ item }) => (
-    <View style={styles.playerCard}>
-      <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.receiverName}</Text>
-       
-      <Text>Teklif Durumu: {item.status}</Text>
-
-      {/* Oyuncu istatistikleri */}
-      {playerStats[item.receiverId] ? (
-        <View style={styles.playerStats}>
-          <Text>🎮 Maç: {playerStats[item.receiverId].totalMatches}</Text>
-          <Text>📨 Teklif: {playerStats[item.receiverId].totalOffers}</Text>
-          <Text>📈 Puan: {playerStats[item.receiverId].averageRating}</Text>
-          <Text>📅 Üyelik: {playerStats[item.receiverId].membershipDays} gün</Text>
-        </View>
-      ) : (
-        <Text style={{ fontStyle: 'italic', color: '#999' }}>Yükleniyor...</Text>
-      )}
-      <Button
-        title="📝 Değerlendir"
-        color="#6A1B9A"
-        onPress={() =>
-          navigation.navigate('CreateReview', {
-            matchId: match.id,
-            reviewedUserId: item.receiverId // ✅ burada tanımlı
-          })
-        }
-      />
-
-      {/* Eğer kaptan isen çıkar butonu göster */}
-      {match.team1CaptainId === playerId && (
-        <TouchableOpacity
-          onPress={() => removeOffer(item.id)}
-          style={{ backgroundColor: 'red', padding: 6, borderRadius: 6, marginTop: 6 }}
-        >
-          <Text style={{ color: 'white', textAlign: 'center' }}>❌ Oyuncuyu Çıkar</Text>
-        </TouchableOpacity>
-      )}
-     
-    </View>
-    
-  )}
-  ListEmptyComponent={<Text style={styles.empty}>Henüz kabul edilen oyuncu yok.</Text>}
-/>
-
-
-      <TouchableOpacity
-        onPress={() => setShowReviews(!showReviews)}
-        style={{ backgroundColor: '#1976D2', padding: 10, borderRadius: 6, marginTop: 20 }}
-      >
-        <Text style={{ color: 'white', textAlign: 'center' }}>{showReviews ? '⬆️ Yorumları Gizle' : '💬 Yorumları Göster'}</Text>
-      </TouchableOpacity>
-      
-
-      {showReviews && (
-        <>
-          <Text style={[styles.title, { fontSize: 18, marginTop: 20 }]}>🗣 Yorumlar</Text>
-          {reviews.length === 0 ? (
-            <Text style={styles.empty}>Henüz yorum yapılmamış.</Text>
-          ) : (
-            <FlatList
-              data={reviews}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.offerCard}>
-                  <Text>⭐ Puan: {item.rating}</Text>
-                  <Text>💬 Yorum: {item.comment}</Text>
-                  
-                </View>
-                
-                
-              )}
-              
-            />
-          )}
-        </>
-      )}
-      {acceptedOffers.map((offer) => (
-  <View key={offer.id} style={styles.playerCard}>
-    <Text>{offer.receiverName}</Text>
-
-    {/* Oyuncunun istatistikleri varsa göster */}
-    {playerStats[offer.receiverId] && (
-      <View style={styles.playerStats}>
-        <Text>🎮 Maç: {playerStats[offer.receiverId].totalMatches}</Text>
-        <Text>📨 Teklif: {playerStats[offer.receiverId].totalOffers}</Text>
-        <Text>📈 Puan: {playerStats[offer.receiverId].averageRating}</Text>
-        <Text>📅 Gün: {playerStats[offer.receiverId].membershipDays}</Text>
-      </View>
-    )}
-
-    {/* Eğer kaptan isen çıkar butonu göster */}
-    {match.team1?.captainId === playerId && (
-      <TouchableOpacity onPress={() => removeOffer(offer.id)}>
-        <Text style={{ color: 'red', marginTop: 5 }}>❌ Oyuncuyu Çıkar</Text>
-      </TouchableOpacity>
+      </>
     )}
   </View>
-))}
-
-
-      
-
-    </View>
-  );
-};
+);
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },

@@ -12,7 +12,7 @@ const CreateReviewScreen = () => {
 
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { matchId, reviewedUserId } = route.params;
+  const { matchId } = route.params;
 
   useEffect(() => {
     const loadReviewer = async () => {
@@ -38,7 +38,8 @@ const CreateReviewScreen = () => {
         {
           matchId,
           reviewerId,
-          reviewedUserId,
+          reviewedUserId: null, // 👈 Oyuncu yorumu değil!
+          reviewedTeamId: null, // 👈 Takım yorumu değil!
           comment,
           rating
         },
@@ -47,7 +48,7 @@ const CreateReviewScreen = () => {
         }
       );
 
-      Alert.alert("✅ Başarılı", "Değerlendirme gönderildi.");
+      Alert.alert("✅ Başarılı", "Yorum gönderildi.");
       navigation.goBack();
     } catch (error) {
       console.error("❌ Gönderme hatası:", error);
@@ -57,7 +58,7 @@ const CreateReviewScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📝 Oyuncuyu Değerlendir</Text>
+      <Text style={styles.title}>📝 Maça Yorum Yap</Text>
 
       <Text style={styles.label}>Puan Ver</Text>
       <View style={styles.ratingRow}>
@@ -78,7 +79,7 @@ const CreateReviewScreen = () => {
       <Text style={styles.label}>Yorum</Text>
       <TextInput
         style={styles.input}
-        placeholder="Yorumunuzu yazın"
+        placeholder='Örn: @ahmet çok güzel oynadı'
         value={comment}
         onChangeText={setComment}
         multiline

@@ -1,69 +1,82 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
 const MyReviewsScreen = ({ navigation }: any) => {
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [mentions, setMentions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadReviews = async () => {
+    const fetchMentions = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const decoded: any = jwtDecode(token || '');
-        const playerId = decoded.playerId;
+        if (!token) return;
 
-        const res = await axios.get(`http://10.0.2.2:5275/api/Reviews/byUser/${playerId}`, {
+        const decoded: any = jwtDecode(token);
+        const playerName = decoded.firstName?.toLowerCase(); // 👈 Adı çekiyoruz
+
+        const res = await axios.get(`http://10.0.2.2:5275/api/Reviews/mentions/${playerName}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        setReviews(res.data);
+        setMentions(res.data);
       } catch (error) {
-        console.error("❌ Yorumlar alınamadı:", error);
+        console.error("❌ Mention yorumları alınamadı:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadReviews();
+    fetchMentions();
   }, []);
 
   if (loading) return <ActivityIndicator size="large" color="#6A1B9A" style={{ marginTop: 50 }} />;
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <Text style={styles.title}>💬 Yorumlarım</Text>
+    <View style={{ flex: 1, padding: 20 }}>
+      <Text style={styles.title}>💬 Adınızın Geçtiği Yorumlar</Text>
 
       <FlatList
-        data={reviews}
-        keyExtractor={(item) => item.id.toString()}
+        data={mentions}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.reviewCard}
+            style={styles.card}
             onPress={() => navigation.navigate('MatchDetail', { matchId: item.matchId })}
           >
-            <Text style={styles.field}>🏟 {item.matchField} - {new Date(item.matchDate).toLocaleDateString()}</Text>
+            <Text style={styles.matchInfo}>🏟 {item.fieldName} ({new Date(item.matchDate).toLocaleDateString()})</Text>
             <Text>⭐ Puan: {item.rating}</Text>
             <Text>💬 {item.comment}</Text>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>Hiç yorum yapılmamış.</Text>}
+        ListEmptyComponent={
+          <Text style={{ textAlign: 'center', marginTop: 20 }}>
+            Adınızın geçtiği yorum bulunamadı.
+          </Text>
+        }
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
-  reviewCard: {
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20
+  },
+  card: {
     backgroundColor: '#f3e5f5',
-    padding: 12,
+    padding: 14,
     borderRadius: 10,
     marginBottom: 10
   },
-  field: { fontWeight: 'bold', marginBottom: 4 }
+  matchInfo: {
+    fontWeight: 'bold',
+    marginBottom: 5
+  }
 });
 
 export default MyReviewsScreen;
