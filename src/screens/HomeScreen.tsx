@@ -138,8 +138,14 @@ const HomeScreen = ({ navigation }: any) => {
                     <Text style={styles.gridText}>Oyuncular</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.gridItem} onPress={() => Alert.alert('Sahalar')}>
-                    <Text style={styles.gridIcon}>🏟️</Text>
-                    <Text style={styles.gridText}>Sahalar</Text>
+                    <Text style={styles.gridIcon}></Text>
+                    <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('MatchCalendar')}
+      >
+        <Text style={styles.cardTitle}>📅 Maç Takvimi</Text>
+        <Text>Haftalık maç takvimini görüntüle</Text>
+      </TouchableOpacity>
                 </TouchableOpacity>
             </View>
 
@@ -255,6 +261,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
 },
+  card: {
+    backgroundColor: '#e3f2fd',
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 15
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5
+  },
 
   
     navbar: {

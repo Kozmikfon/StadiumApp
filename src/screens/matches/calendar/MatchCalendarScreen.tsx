@@ -7,6 +7,7 @@ const MatchCalendarScreen = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [loading, setLoading] = useState(true);
+  const today = new Date();
 
   useEffect(() => {
     axios.get('http://10.0.2.2:5275/api/Matches/calendar')
@@ -15,13 +16,34 @@ const MatchCalendarScreen = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const markedDates = matches.reduce((acc, match) => {
-    const date = match.matchDate.split('T')[0]; // YYYY-MM-DD
-    acc[date] = { marked: true, dotColor: '#4CAF50' };
+  // 🔹 Gelecekteki maçları filtrele
+  const futureMatches = matches.filter((m: any) => {
+    const matchDate = new Date(m.matchDate);
+    return matchDate >= today;
+  });
+
+  // 🔹 Takvimde işaretlenecek tarihler
+  const markedDates = futureMatches.reduce((acc, match) => {
+    const dateKey = match.matchDate.split('T')[0];
+    acc[dateKey] = {
+      marked: true,
+      dotColor: '#4CAF50',
+      customStyles: {
+        container: {
+          backgroundColor: '#E8F5E9',
+          borderRadius: 10
+        },
+        text: {
+          color: '#2E7D32',
+          fontWeight: 'bold'
+        }
+      }
+    };
     return acc;
   }, {} as any);
 
-  const filteredMatches = matches.filter(
+  // 🔹 Seçilen tarihteki maçlar
+  const filteredMatches = futureMatches.filter(
     (m) => m.matchDate.split('T')[0] === selectedDate
   );
 
@@ -29,15 +51,20 @@ const MatchCalendarScreen = () => {
     <View style={styles.container}>
       <Calendar
         onDayPress={(day) => setSelectedDate(day.dateString)}
+        markingType="custom"
         markedDates={{
           ...markedDates,
           ...(selectedDate && {
-            [selectedDate]: { selected: true, selectedColor: '#1976D2' }
+            [selectedDate]: {
+              ...markedDates[selectedDate],
+              selected: true,
+              selectedColor: '#1976D2'
+            }
           })
         }}
         theme={{
-          selectedDayBackgroundColor: '#1976D2',
           todayTextColor: '#4CAF50',
+          textDayFontWeight: 'bold'
         }}
       />
 
@@ -45,22 +72,27 @@ const MatchCalendarScreen = () => {
         <ActivityIndicator style={{ marginTop: 30 }} />
       ) : (
         <>
-          <Text style={styles.title}>
-            📅 {selectedDate} tarihli maçlar
-          </Text>
+          <Text style={styles.title}>📅 {selectedDate} tarihli maçlar</Text>
           <FlatList
             data={filteredMatches}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <View style={styles.card}>
                 <Text style={styles.label}>Saha: {item.fieldName}</Text>
-                <Text style={styles.label}>Takımlar: {item.team1Name} vs {item.team2Name}</Text>
                 <Text style={styles.label}>
-                  Saat: {new Date(item.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  Takımlar: {item.team1Name} vs {item.team2Name}
+                </Text>
+                <Text style={styles.label}>
+                  Saat: {new Date(item.matchDate).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                 </Text>
               </View>
             )}
-            ListEmptyComponent={<Text style={styles.empty}>Bu tarihte maç yok.</Text>}
+            ListEmptyComponent={
+              <Text style={styles.empty}>Bu tarihte maç yok.</Text>
+            }
           />
         </>
       )}
