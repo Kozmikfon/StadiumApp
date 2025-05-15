@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert,ToastAndroid, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { Picker } from '@react-native-picker/picker';
 
 const EditPlayerProfileScreen = ({ navigation }: any) => {
   const [form, setForm] = useState({
@@ -26,6 +27,11 @@ const EditPlayerProfileScreen = ({ navigation }: any) => {
         const res = await axios.get(`http://10.0.2.2:5275/api/Players/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        
+        if (Platform.OS === 'android') {
+  ToastAndroid.show("✅ Profil başarıyla güncellendi!", ToastAndroid.SHORT);
+}
+
 
         setForm({
           email: res.data.email || '',
@@ -46,6 +52,11 @@ const EditPlayerProfileScreen = ({ navigation }: any) => {
 
   const handleSubmit = async () => {
     try {
+        if (!form.email || !form.email.includes('@')) {
+  Alert.alert("Geçersiz Email", "Lütfen geçerli bir e-posta adresi girin.");
+  return;
+}
+
       const token = await AsyncStorage.getItem('token');
       if (!token || !playerId) return;
 
@@ -81,12 +92,21 @@ const EditPlayerProfileScreen = ({ navigation }: any) => {
         onChangeText={(text) => handleChange('email', text)}
       />
 
-      <TextInput
-        placeholder="Pozisyon"
-        style={styles.input}
-        value={form.position}
-        onChangeText={(text) => handleChange('position', text)}
-      />
+      <Text style={{ fontWeight: 'bold', marginBottom: 5 }}>Pozisyon</Text>
+<View style={styles.pickerContainer}>
+  <Picker
+    selectedValue={form.position}
+    onValueChange={(value) => handleChange('position', value)}
+    style={styles.picker}
+  >
+    <Picker.Item label="Pozisyon seçin" value="" />
+    <Picker.Item label="Kaleci" value="Kaleci" />
+    <Picker.Item label="Defans" value="Defans" />
+    <Picker.Item label="Orta Saha" value="Orta Saha" />
+    <Picker.Item label="Forvet" value="Forvet" />
+  </Picker>
+</View>
+
 
       <TouchableOpacity onPress={handleSubmit} style={styles.button}>
         <Text style={styles.buttonText}>Kaydet</Text>
@@ -102,5 +122,16 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
   input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 15, padding: 10, borderRadius: 8 },
   button: { backgroundColor: '#2e7d32', padding: 15, borderRadius: 8 },
-  buttonText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' }
+  buttonText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
+  pickerContainer: {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 8,
+  marginBottom: 15,
+},
+picker: {
+  height: 50,
+  width: '100%',
+},
+
 });
