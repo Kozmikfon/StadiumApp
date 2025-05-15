@@ -172,6 +172,12 @@ const PlayerProfileScreen = ({ navigation }: any) => {
     borderRadius: 16,
   }}
 />
+<Button
+  title="💬 Yorumlarım"
+  color="#9C27B0"
+  onPress={() => navigation.navigate('MyReviews')}
+/>
+
 
 
 
