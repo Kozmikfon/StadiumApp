@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Button } from 'react-native';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../navigation/props/types';
 
 const TopTeamsScreen = () => {
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   useEffect(() => {
     const fetchTopTeams = async () => {
       try {
@@ -40,6 +43,11 @@ const TopTeamsScreen = () => {
         )}
         ListEmptyComponent={<Text style={styles.empty}>Henüz takım verisi yok.</Text>}
       />
+      <Button
+  title="🏅 En İyi Oyuncular"
+  onPress={() => navigation.navigate('TopPlayers')}
+/>
+
     </View>
   );
 };
