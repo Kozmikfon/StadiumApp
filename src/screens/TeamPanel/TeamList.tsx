@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Button } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
@@ -89,9 +89,12 @@ const TeamList = ({ navigation }: any) => {
             >
               <Text style={styles.joinButtonText}>Takıma Katıl</Text>
             </TouchableOpacity>
+           
           </View>
+          
         )}
       />
+       <Button title="📨 Takımım" color="#FFA000" onPress={() => navigation.navigate('MyTeam')} />
     </View>
   );
 };

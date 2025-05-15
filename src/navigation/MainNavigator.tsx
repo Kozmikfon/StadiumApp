@@ -21,6 +21,8 @@ import CreateTeamScreen from '../screens/TeamPanel/CreateTeamScreen';
 import CreateReviewScreen from '../screens/Review/CreateReviewScreen';
 import EditPlayerProfileScreen from '../screens/playerPanel/EditPlayerProfileScreen';
 import MyReviewsScreen from '../screens/Review/MyReviewsScreen';
+import MyTeamScreen from '../screens/TeamPanel/MyTeamScreen';
+import ChangeCaptainScreen from '../screens/TeamPanel/ChangeCaptainScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -48,6 +50,8 @@ const MainNavigator = () => {
             <Stack.Screen name="CreateReview" component={CreateReviewScreen} />
             <Stack.Screen name="EditPlayerProfile" component={EditPlayerProfileScreen} />
             <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
+            <Stack.Screen name="MyTeam" component={MyTeamScreen} />
+            <Stack.Screen name="ChangeCaptain" component={ChangeCaptainScreen} />
 
             
         </Stack.Navigator>
