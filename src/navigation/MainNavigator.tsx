@@ -46,6 +46,7 @@ const MainNavigator = () => {
             <Stack.Screen name="CreateTeam" component={CreateTeamScreen} />
             <Stack.Screen name="CreateReview" component={CreateReviewScreen} />
             <Stack.Screen name="EditPlayerProfile" component={EditPlayerProfileScreen} />
+            
         </Stack.Navigator>
     );
 };

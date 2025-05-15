@@ -159,6 +159,7 @@ const MatchDetailScreen =({ navigation }: any) => {
   renderItem={({ item }) => (
     <View style={styles.playerCard}>
       <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.receiverName}</Text>
+       
       <Text>Teklif Durumu: {item.status}</Text>
 
       {/* Oyuncu istatistikleri */}
@@ -172,6 +173,16 @@ const MatchDetailScreen =({ navigation }: any) => {
       ) : (
         <Text style={{ fontStyle: 'italic', color: '#999' }}>Yükleniyor...</Text>
       )}
+      <Button
+        title="📝 Değerlendir"
+        color="#6A1B9A"
+        onPress={() =>
+          navigation.navigate('CreateReview', {
+            matchId: match.id,
+            reviewedUserId: item.receiverId // ✅ burada tanımlı
+          })
+        }
+      />
 
       {/* Eğer kaptan isen çıkar butonu göster */}
       {match.team1CaptainId === playerId && (
@@ -182,7 +193,9 @@ const MatchDetailScreen =({ navigation }: any) => {
           <Text style={{ color: 'white', textAlign: 'center' }}>❌ Oyuncuyu Çıkar</Text>
         </TouchableOpacity>
       )}
+     
     </View>
+    
   )}
   ListEmptyComponent={<Text style={styles.empty}>Henüz kabul edilen oyuncu yok.</Text>}
 />
@@ -194,6 +207,7 @@ const MatchDetailScreen =({ navigation }: any) => {
       >
         <Text style={{ color: 'white', textAlign: 'center' }}>{showReviews ? '⬆️ Yorumları Gizle' : '💬 Yorumları Göster'}</Text>
       </TouchableOpacity>
+      
 
       {showReviews && (
         <>
@@ -208,8 +222,12 @@ const MatchDetailScreen =({ navigation }: any) => {
                 <View style={styles.offerCard}>
                   <Text>⭐ Puan: {item.rating}</Text>
                   <Text>💬 Yorum: {item.comment}</Text>
+                  
                 </View>
+                
+                
               )}
+              
             />
           )}
         </>
@@ -238,11 +256,8 @@ const MatchDetailScreen =({ navigation }: any) => {
 ))}
 
 
-      <Button
-        title="📝 Değerlendirme Yap"
-        color="#6A1B9A"
-        onPress={() => navigation.navigate('CreateReview', { matchId: match.id })}
-      />
+      
+
     </View>
   );
 };
