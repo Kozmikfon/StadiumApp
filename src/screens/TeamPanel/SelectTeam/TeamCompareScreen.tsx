@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Button } from 'react-native';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../navigation/props/types';
 
 const TeamCompareScreen = ({ route }: any) => {
   const { team1Id, team2Id } = route.params;
   const [comparison, setComparison] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     axios.get(`http://10.0.2.2:5275/api/Teams/compare/${team1Id}/${team2Id}`)
@@ -26,6 +30,13 @@ const TeamCompareScreen = ({ route }: any) => {
           <Text>📈 Ortalama Puan: {team.averageRating}</Text>
         </View>
       ))}
+
+      {/* 📊 Sıralama Butonu */}
+      <Button
+        title="🏆 Takım Sıralaması"
+        onPress={() => navigation.navigate('TopTeams')}
+        color="#388E3C"
+      />
     </View>
   );
 };

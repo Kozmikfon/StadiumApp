@@ -10,6 +10,9 @@ export type RootStackParamList = {
   TeamList: undefined;
   TeamDetail: undefined;
   MatchList: undefined;
+    MatchDetail: { matchId: number };
+  TeamCompare: { team1Id: number; team2Id: number };
+  TopTeams: undefined; // ✅ bunu ekle
   
 
   

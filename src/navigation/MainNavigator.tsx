@@ -26,6 +26,7 @@ import ChangeCaptainScreen from '../screens/TeamPanel/ChangeCaptainScreen';
 import SelectTeam1Screen from '../screens/TeamPanel/SelectTeam/SelectTeam1Screen';
 import SelectTeam2Screen from '../screens/TeamPanel/SelectTeam/SelectTeam2Screen';
 import TeamCompareScreen from '../screens/TeamPanel/SelectTeam/TeamCompareScreen';
+import TopTeamsScreen from '../screens/TeamPanel/TopTeam/TopTeamsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -58,6 +59,7 @@ const MainNavigator = () => {
             <Stack.Screen name="SelectTeam1" component={SelectTeam1Screen} />
             <Stack.Screen name="SelectTeam2" component={SelectTeam2Screen} />
             <Stack.Screen name="TeamCompare" component={TeamCompareScreen} />
+            <Stack.Screen name="TopTeams" component={TopTeamsScreen} />
 
             
         </Stack.Navigator>
