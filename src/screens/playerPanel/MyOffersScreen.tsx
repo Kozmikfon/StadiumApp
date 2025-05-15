@@ -59,21 +59,18 @@ const MyOffersScreen = () => {
       const token = await AsyncStorage.getItem('token');
 
       await axios.put(
-  `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
-  { Status: status }, // 👈 DTO'ya uygun!
-  {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    }
-  }
-);
-
+        `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
+        { Status: status },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
 
       Alert.alert('✅ Başarılı', `Teklif ${translateStatus(status)} olarak güncellendi`);
-
       await fetchOffers();
-
     } catch (error) {
       console.error('❌ Güncelleme hatası:', error);
       Alert.alert('Hata', 'Durum güncellenemedi.');
@@ -84,35 +81,59 @@ const MyOffersScreen = () => {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 30 }} />;
   }
 
+  const acceptedOffers = offers.filter(o => o.status === 'Accepted');
+  const rejectedOffers = offers.filter(o => o.status === 'Rejected');
+  const pendingOffers = offers.filter(o => o.status === 'Pending');
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📨 Gelen Teklifler</Text>
+      <Text style={styles.title}>📨 Bekleyen Teklifler</Text>
       <FlatList
-        data={offers}
-        extraData={offers}
+        data={pendingOffers}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => {
-          console.log("Teklif durumu:", item.status); // LOG: gelen statü
-          return (
-            <View style={styles.card}>
-              <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
-              <Text>Maç ID: {item.matchId}</Text>
-              <Text>Durum: {translateStatus(item.status)}</Text>
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
+            <Text>Maç ID: {item.matchId}</Text>
+            <Text>Durum: {translateStatus(item.status)}</Text>
 
-              {item.status?.toLowerCase() === 'pending' && (
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, 'Accepted')}>
-                    <Text style={styles.btnText}>Onayla</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, 'Rejected')}>
-                    <Text style={styles.btnText}>Reddet</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, 'Accepted')}>
+                <Text style={styles.btnText}>Onayla</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, 'Rejected')}>
+                <Text style={styles.btnText}>Reddet</Text>
+              </TouchableOpacity>
             </View>
-          );
-        }}
-        ListEmptyComponent={<Text style={styles.empty}>Henüz teklif yok.</Text>}
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>Henüz bekleyen teklif yok.</Text>}
+      />
+
+      <Text style={styles.title}>✅ Kabul Ettiklerim</Text>
+      <FlatList
+        data={acceptedOffers}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>Maç ID: {item.matchId}</Text>
+            <Text>Durum: {translateStatus(item.status)}</Text>
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>Hiçbir maçı kabul etmediniz.</Text>}
+      />
+
+      <Text style={styles.title}>❌ Reddettiklerim</Text>
+      <FlatList
+        data={rejectedOffers}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>Maç ID: {item.matchId}</Text>
+            <Text>Durum: {translateStatus(item.status)}</Text>
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>Henüz reddettiğiniz teklif yok.</Text>}
       />
     </View>
   );
@@ -127,7 +148,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10
   },
-  empty: { textAlign: 'center', marginTop: 50, fontSize: 16 },
+  empty: { textAlign: 'center', marginTop: 10, fontSize: 16 },
   buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   acceptBtn: {
     backgroundColor: '#4CAF50',
