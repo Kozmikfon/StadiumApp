@@ -8,6 +8,12 @@ const PlayerProfileScreen = ({ navigation }: any) => {
   const [player, setPlayer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<number | null>(null);
+  const [stats, setStats] = useState({
+  totalMatches: 0,
+  totalOffers: 0,
+  averageRating: 0,
+  membershipDays: 0,
+});
 
   useEffect(() => {
     const init = async () => {
@@ -34,6 +40,25 @@ const PlayerProfileScreen = ({ navigation }: any) => {
 
     init();
   }, []);
+  useEffect(() => {
+  const fetchStats = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token || !player?.id) return;
+
+      const res = await axios.get(`http://10.0.2.2:5275/api/Players/stats/${player.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setStats(res.data);
+    } catch (err) {
+      console.error("Stat çekilemedi", err);
+    }
+  };
+
+  fetchStats();
+}, [player]);
+
 
   const handleLeaveTeam = async () => {
     try {
@@ -103,6 +128,14 @@ const PlayerProfileScreen = ({ navigation }: any) => {
       <Button title="👥 Oyuncular Listesi" color="#6A1B9A" onPress={() => navigation.navigate('PlayerList')} />
         <View style={{ marginTop: 10 }} />
 <Button title="🛠 Profilimi Düzenle" color="#00796B" onPress={() => navigation.navigate('EditPlayerProfile')} />
+  <View style={styles.statsCard}>
+  <Text style={styles.statsTitle}>📊 İstatistiklerim:</Text>
+  <Text>🎮 Maç Sayısı: {stats.totalMatches}</Text>
+  <Text>📨 Gelen Teklifler: {stats.totalOffers}</Text>
+  <Text>📈 Ortalama Puan: {stats.averageRating.toFixed(1)}</Text>
+  <Text>📅 Takım Üyeliği: {stats.membershipDays} gün</Text>
+</View>
+
     </View>
   );
 };
@@ -122,7 +155,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 50,
     fontSize: 16
-  }
+  },
+  statsCard: {
+  backgroundColor: '#f1f8e9',
+  padding: 15,
+  borderRadius: 10,
+  marginTop: 10,
+},
+statsTitle: {
+  fontWeight: 'bold',
+  fontSize: 16,
+  marginBottom: 8,
+}
+
 });
 
 export default PlayerProfileScreen;
