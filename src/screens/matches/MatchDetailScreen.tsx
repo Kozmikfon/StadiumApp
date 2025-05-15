@@ -16,6 +16,7 @@ const MatchDetailScreen =({ navigation }: any) => {
   const [playerId, setPlayerId] = useState<number | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [showReviews, setShowReviews] = useState(false);
+  const [playerStats, setPlayerStats] = useState<{ [key: number]: any }>({});
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -35,6 +36,10 @@ const MatchDetailScreen =({ navigation }: any) => {
         const acceptedRes = await axios.get(`http://10.0.2.2:5275/api/Offers/accepted-by-match/${matchId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        for (const offer of acceptedRes.data) {
+  const statsRes = await axios.get(`http://10.0.2.2:5275/api/Players/stats/${offer.receiverId}`);
+  setPlayerStats(prev => ({ ...prev, [offer.receiverId]: statsRes.data }));
+}
 
         setMatch(matchRes.data);
         const filteredOffers = offersRes.data.filter((o: any) => o.matchId === matchId);
@@ -57,6 +62,9 @@ const MatchDetailScreen =({ navigation }: any) => {
         console.error("❌ Yorumlar alınamadı:", err);
       }
     };
+    
+
+    
 
     fetchDetails();
     fetchReviews();
@@ -146,24 +154,39 @@ const MatchDetailScreen =({ navigation }: any) => {
 
       <Text style={[styles.title, { fontSize: 18, marginTop: 20 }]}>✅ Maça Çıkacak Oyuncular</Text>
       <FlatList
-        data={acceptedOffers}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.offerCard}>
-            <Text>Oyuncu : {item.receiverName}</Text>
-            <Text>Teklif Durumu: {item.status}</Text>
-            {playerId === match.team1CaptainId && (
-              <TouchableOpacity
-                onPress={() => removeOffer(item.id)}
-                style={{ backgroundColor: 'red', padding: 6, borderRadius: 6, marginTop: 6 }}
-              >
-                <Text style={{ color: 'white', textAlign: 'center' }}>❌ Maçtan Çıkar</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>Henüz kabul edilen oyuncu yok.</Text>}
-      />
+  data={acceptedOffers}
+  keyExtractor={(item) => item.id.toString()}
+  renderItem={({ item }) => (
+    <View style={styles.playerCard}>
+      <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.receiverName}</Text>
+      <Text>Teklif Durumu: {item.status}</Text>
+
+      {/* Oyuncu istatistikleri */}
+      {playerStats[item.receiverId] ? (
+        <View style={styles.playerStats}>
+          <Text>🎮 Maç: {playerStats[item.receiverId].totalMatches}</Text>
+          <Text>📨 Teklif: {playerStats[item.receiverId].totalOffers}</Text>
+          <Text>📈 Puan: {playerStats[item.receiverId].averageRating}</Text>
+          <Text>📅 Üyelik: {playerStats[item.receiverId].membershipDays} gün</Text>
+        </View>
+      ) : (
+        <Text style={{ fontStyle: 'italic', color: '#999' }}>Yükleniyor...</Text>
+      )}
+
+      {/* Eğer kaptan isen çıkar butonu göster */}
+      {match.team1CaptainId === playerId && (
+        <TouchableOpacity
+          onPress={() => removeOffer(item.id)}
+          style={{ backgroundColor: 'red', padding: 6, borderRadius: 6, marginTop: 6 }}
+        >
+          <Text style={{ color: 'white', textAlign: 'center' }}>❌ Oyuncuyu Çıkar</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  )}
+  ListEmptyComponent={<Text style={styles.empty}>Henüz kabul edilen oyuncu yok.</Text>}
+/>
+
 
       <TouchableOpacity
         onPress={() => setShowReviews(!showReviews)}
@@ -191,6 +214,29 @@ const MatchDetailScreen =({ navigation }: any) => {
           )}
         </>
       )}
+      {acceptedOffers.map((offer) => (
+  <View key={offer.id} style={styles.playerCard}>
+    <Text>{offer.receiverName}</Text>
+
+    {/* Oyuncunun istatistikleri varsa göster */}
+    {playerStats[offer.receiverId] && (
+      <View style={styles.playerStats}>
+        <Text>🎮 Maç: {playerStats[offer.receiverId].totalMatches}</Text>
+        <Text>📨 Teklif: {playerStats[offer.receiverId].totalOffers}</Text>
+        <Text>📈 Puan: {playerStats[offer.receiverId].averageRating}</Text>
+        <Text>📅 Gün: {playerStats[offer.receiverId].membershipDays}</Text>
+      </View>
+    )}
+
+    {/* Eğer kaptan isen çıkar butonu göster */}
+    {match.team1?.captainId === playerId && (
+      <TouchableOpacity onPress={() => removeOffer(offer.id)}>
+        <Text style={{ color: 'red', marginTop: 5 }}>❌ Oyuncuyu Çıkar</Text>
+      </TouchableOpacity>
+    )}
+  </View>
+))}
+
 
       <Button
         title="📝 Değerlendirme Yap"
@@ -210,6 +256,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20
   },
+  playerCard: {
+  backgroundColor: '#f9f9f9',
+  padding: 12,
+  marginVertical: 8,
+  borderRadius: 8,
+  borderWidth: 1,
+  borderColor: '#ccc',
+},
+playerStats: {
+  marginTop: 5,
+  paddingLeft: 10,
+},
+
   offerCard: {
     backgroundColor: '#fff',
     padding: 12,

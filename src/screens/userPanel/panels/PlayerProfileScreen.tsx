@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Button, Alert, ActivityIndicator , Dimensions, ScrollView} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { BarChart } from 'react-native-chart-kit';
 
 const PlayerProfileScreen = ({ navigation }: any) => {
   const [player, setPlayer] = useState<any>(null);
@@ -101,6 +102,7 @@ const PlayerProfileScreen = ({ navigation }: any) => {
   const formattedDate = new Date(player.createAd).toLocaleDateString('tr-TR');
 
   return (
+    <ScrollView>
     <View style={styles.container}>
       <Text style={styles.title}>👤 Oyuncu Profilim</Text>
 
@@ -135,8 +137,47 @@ const PlayerProfileScreen = ({ navigation }: any) => {
   <Text>📈 Ortalama Puan: {stats.averageRating.toFixed(1)}</Text>
   <Text>📅 Takım Üyeliği: {stats.membershipDays} gün</Text>
 </View>
+<BarChart
+  data={{
+    labels: ['Maç', 'Teklif', 'Puan', 'Üyelik'],
+    datasets: [
+      {
+        data: [
+          stats.totalMatches,
+          stats.totalOffers,
+          stats.averageRating,
+          stats.membershipDays,
+        ],
+      },
+    ],
+  }}
+  width={Dimensions.get('window').width - 40}
+  height={220}
+  fromZero
+  yAxisLabel=""
+  yAxisSuffix="" // 👉 BU SATIR HATAYI ÇÖZER
+  chartConfig={{
+    backgroundColor: '#ffffff',
+    backgroundGradientFrom: '#ffffff',
+    backgroundGradientTo: '#ffffff',
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(46, 125, 50, ${opacity})`,
+    labelColor: () => '#000',
+    style: {
+      borderRadius: 16,
+    },
+  }}
+  style={{
+    marginVertical: 10,
+    borderRadius: 16,
+  }}
+/>
+
+
+
 
     </View>
+    </ScrollView>
   );
 };
 
