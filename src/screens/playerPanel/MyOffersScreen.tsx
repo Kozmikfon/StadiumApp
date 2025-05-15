@@ -87,8 +87,8 @@ const MyOffersScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      // PENDING OFFERS
-<Text style={styles.title}>📨 Bekleyen Teklifler</Text>
+      
+      <Text style={styles.title}>📨 Bekleyen Teklifler</Text>
 <FlatList
   data={pendingOffers}
   keyExtractor={(item) => item.id.toString()}
@@ -180,12 +180,18 @@ const MyOffersScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
-  card: {
-    backgroundColor: '#f4f4f4',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10
-  },
+card: {
+  backgroundColor: '#f4f4f4',
+  padding: 15,
+  borderRadius: 10,
+  marginBottom: 10,
+  elevation: 3, // Android için gölge
+  shadowColor: '#000', // iOS için
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+},
+
   label: {
   fontSize: 15,
   marginBottom: 4
