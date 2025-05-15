@@ -15,7 +15,7 @@ const MyReviewsScreen = ({ navigation }: any) => {
         if (!token) return;
 
         const decoded: any = jwtDecode(token);
-        const playerName = decoded.firstName?.toLowerCase(); // 👈 Adı çekiyoruz
+        const playerName = decoded.firstName?.toLowerCase().trim(); // 👈 kritik
 
         const res = await axios.get(`http://10.0.2.2:5275/api/Reviews/mentions/${playerName}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -40,13 +40,13 @@ const MyReviewsScreen = ({ navigation }: any) => {
 
       <FlatList
         data={mentions}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(_, index) => index.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
             onPress={() => navigation.navigate('MatchDetail', { matchId: item.matchId })}
           >
-            <Text style={styles.matchInfo}>🏟 {item.fieldName} ({new Date(item.matchDate).toLocaleDateString()})</Text>
+            <Text style={styles.matchInfo}>🏟 {item.fieldName} ({new Date(item.matchDate).toLocaleDateString('tr-TR')})</Text>
             <Text>⭐ Puan: {item.rating}</Text>
             <Text>💬 {item.comment}</Text>
           </TouchableOpacity>

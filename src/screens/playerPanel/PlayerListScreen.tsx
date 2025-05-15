@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+  TextInput
+} from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
 const PlayerList = ({ navigation }: any) => {
   const [players, setPlayers] = useState<any[]>([]);
+  const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
+  const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,6 +24,7 @@ const PlayerList = ({ navigation }: any) => {
       try {
         const response = await axios.get('http://10.0.2.2:5275/api/Players');
         setPlayers(response.data);
+        setFilteredPlayers(response.data); // ✅ ilk yüklemede tümünü göster
       } catch (error) {
         console.error('❌ Oyuncular alınamadı:', error);
       } finally {
@@ -23,45 +35,31 @@ const PlayerList = ({ navigation }: any) => {
     fetchPlayers();
   }, []);
 
-  const handleSendOffer = async (receiverId: number) => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      const decoded: any = jwtDecode(token || '');
-      const senderUserId = decoded.userId;
-
-      const senderResponse = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${senderUserId}`);
-      const senderId = senderResponse.data.id;
-
-      const matchId = 1; // 👈 Sabit maç ID, sonra seçimli yapılabilir
-
-      const offerDto = {
-        senderId,
-        receiverId,
-        matchId,
-        status: "Beklemede"
-      };
-
-      await axios.post('http://10.0.2.2:5275/api/Offers', offerDto, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      Alert.alert("✅ Teklif Gönderildi");
-
-    } catch (error) {
-      console.error("❌ Teklif gönderilemedi:", error);
-      Alert.alert("Hata", "Teklif gönderilemedi.");
-    }
-  };
+  useEffect(() => {
+    const lower = searchText.toLowerCase();
+    const filtered = players.filter(p =>
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(lower)
+    );
+    setFilteredPlayers(filtered);
+  }, [searchText, players]);
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#2E7D32" />;
+    return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 40 }} />;
   }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tüm Oyuncular</Text>
+
+      <TextInput
+        placeholder="Oyuncu ara..."
+        value={searchText}
+        onChangeText={setSearchText}
+        style={styles.searchInput}
+      />
+
       <FlatList
-        data={players}
+        data={filteredPlayers}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.playerCard}>
@@ -75,14 +73,12 @@ const PlayerList = ({ navigation }: any) => {
               <Text>Takım: {item.teamName ?? "Takımsız"}</Text>
             </TouchableOpacity>
 
-           <TouchableOpacity
-  style={styles.offerButton}
-  onPress={() => navigation.navigate('SendOffer', { receiverId: item.id })}
->
-  <Text style={styles.offerButtonText}>➕ Teklif Gönder</Text>
-</TouchableOpacity>
-
-
+            <TouchableOpacity
+              style={styles.offerButton}
+              onPress={() => navigation.navigate('SendOffer', { receiverId: item.id })}
+            >
+              <Text style={styles.offerButtonText}>➕ Teklif Gönder</Text>
+            </TouchableOpacity>
           </View>
         )}
       />
@@ -98,7 +94,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 20
+    marginBottom: 10
+  },
+  searchInput: {
+    backgroundColor: '#f1f1f1',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 15
   },
   playerCard: {
     backgroundColor: '#fff',
