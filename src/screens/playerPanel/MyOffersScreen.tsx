@@ -5,10 +5,10 @@ import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
-const MyOffersScreen = () => {
+const MyOffersScreen = ({ navigation }: any) => {
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation();
+  //const navigation = useNavigation();
 
   const fetchOffers = async () => {
     try {
@@ -94,42 +94,63 @@ const MyOffersScreen = () => {
   keyExtractor={(item) => item.id.toString()}
   renderItem={({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.label}>📅 Maç: {new Date(item.matchDate).toLocaleDateString()}</Text>
-      <Text style={styles.label}>📍 Saha: {item.fieldName}</Text>
-      <Text style={styles.label}>🧑‍✈️ Kaptan: {item.captainName}</Text>
-      <Text style={styles.label}>📨 Durum: {translateStatus(item.status)}</Text>
+      <Text>Takım: {item.matchTeamName}</Text>
+      <Text>Saha: {item.matchFieldName}</Text>
+      <Text>Kaptan: {item.matchCaptainName}</Text>
+      <Text>Durum: {translateStatus(item.status)}</Text>
 
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, 'Accepted')}>
-          <Text style={styles.btnText}>✅ Onayla</Text>
+          <Text style={styles.btnText}>Onayla</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, 'Rejected')}>
-          <Text style={styles.btnText}>❌ Reddet</Text>
+          <Text style={styles.btnText}>Reddet</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 📄 Detaya Git Butonu */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate('MatchDetail', { matchId: item.matchId })}
+        style={{ marginTop: 8 }}
+      >
+        <Text style={{ color: '#1976D2', fontWeight: 'bold' }}>📄 Maç Detayı</Text>
+      </TouchableOpacity>
     </View>
   )}
+
   ListEmptyComponent={<Text style={styles.empty}>Henüz bekleyen teklif yok.</Text>}
 />
 
 {/* ACCEPTED OFFERS */}
-<Text style={styles.title}>✅ Kabul Ettiklerim</Text>
+<Text style={styles.title}> Kabul Ettiklerim</Text>
 <FlatList
   data={acceptedOffers}
   keyExtractor={(item) => item.id.toString()}
   renderItem={({ item }) => (
+    
     <View style={styles.card}>
+      
       <Text style={styles.label}>📅 Maç: {new Date(item.matchDate).toLocaleDateString()}</Text>
       <Text style={styles.label}>📍 Saha: {item.fieldName}</Text>
       <Text style={styles.label}>🧑‍✈️ Kaptan: {item.captainName}</Text>
       <Text style={styles.label}>📨 Durum: {translateStatus(item.status)}</Text>
+      <TouchableOpacity
+  onPress={() => navigation.navigate('MatchDetail', { matchId: item.matchId })}
+  style={{ marginTop: 8 }}
+>
+  <Text style={{ color: '#1976D2', fontWeight: 'bold' }}>📄 Maç Detayı</Text>
+</TouchableOpacity>
+
+
     </View>
+    
   )}
   ListEmptyComponent={<Text style={styles.empty}>Hiçbir maçı kabul etmediniz.</Text>}
 />
 
 {/* REJECTED OFFERS */}
-<Text style={styles.title}>❌ Reddettiklerim</Text>
+<Text style={styles.title}> Reddettiklerim</Text>
+
 <FlatList
   data={rejectedOffers}
   keyExtractor={(item) => item.id.toString()}
@@ -139,6 +160,14 @@ const MyOffersScreen = () => {
       <Text style={styles.label}>📍 Saha: {item.fieldName}</Text>
       <Text style={styles.label}>🧑‍✈️ Kaptan: {item.captainName}</Text>
       <Text style={styles.label}>📨 Durum: {translateStatus(item.status)}</Text>
+      <TouchableOpacity
+  onPress={() => navigation.navigate('MatchDetail', { matchId: item.matchId })}
+  style={{ marginTop: 8 }}
+>
+  <Text style={{ color: '#1976D2', fontWeight: 'bold' }}>📄 Maç Detayı</Text>
+</TouchableOpacity>
+
+
     </View>
   )}
   ListEmptyComponent={<Text style={styles.empty}>Henüz reddettiğiniz teklif yok.</Text>}
