@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { jwtDecode } from 'jwt-decode';
+import { AirbnbRating } from 'react-native-ratings';
 
 const CreateReviewScreen = () => {
   const [rating, setRating] = useState('');
