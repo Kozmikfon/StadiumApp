@@ -19,6 +19,7 @@ import MyOffersScreen from '../screens/playerPanel/MyOffersScreen';
 import MatchDetailScreen from '../screens/matches/MatchDetailScreen';
 import CreateTeamScreen from '../screens/TeamPanel/CreateTeamScreen';
 import CreateReviewScreen from '../screens/Review/CreateReviewScreen';
+import EditPlayerProfileScreen from '../screens/playerPanel/EditPlayerProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -44,7 +45,7 @@ const MainNavigator = () => {
             <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
             <Stack.Screen name="CreateTeam" component={CreateTeamScreen} />
             <Stack.Screen name="CreateReview" component={CreateReviewScreen} />
-
+            <Stack.Screen name="CreatePlayerProfile" component={EditPlayerProfileScreen} />
         </Stack.Navigator>
     );
 };
