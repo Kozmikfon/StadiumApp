@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ScrollView, Dimensions, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ScrollView, Dimensions, Alert, Modal, Button } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
@@ -114,6 +114,10 @@ const HomeScreen = ({ navigation }: any) => {
                     style={styles.bannerImage}
                 />
             </LinearGradient>
+            <Button
+  title="🤝 Takım Karşılaştır"
+  onPress={() => navigation.navigate('SelectTeam1')}
+/>
 
             {/* Grid Kartlar */}
             <View style={styles.gridRow}>
