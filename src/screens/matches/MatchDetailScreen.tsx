@@ -36,6 +36,7 @@ const MatchDetailScreen =({ navigation }: any) => {
         const acceptedRes = await axios.get(`http://10.0.2.2:5275/api/Offers/accepted-by-match/${matchId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        
         for (const offer of acceptedRes.data) {
         const statsRes = await axios.get(`http://10.0.2.2:5275/api/Players/stats/${offer.receiverId}`);
         setPlayerStats(prev => ({ ...prev, [offer.receiverId]: statsRes.data }));
@@ -67,7 +68,11 @@ const MatchDetailScreen =({ navigation }: any) => {
     
     fetchDetails();
   }, [matchId]);
-
+ 
+  // ✅ acceptedOffers değiştikçe logla
+useEffect(() => {
+  console.log("📦 acceptedOffers", acceptedOffers);
+}, [acceptedOffers]);
   useFocusEffect(
     useCallback(() => {
       const fetchReviews = async () => {
