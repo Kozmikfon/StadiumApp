@@ -237,11 +237,13 @@ const MatchDetailScreen =({ navigation }: any) => {
       <View style={styles.reviewHeader}>
         <Text style={styles.reviewRating}>⭐ {item.rating}</Text>
         {/* Eğer yorum yapan kişi giriş yapan oyuncuysa sil butonu göster */}
-        {item.reviewerId === playerId && (
-          <TouchableOpacity onPress={() => handleDeleteReview(item.id)}>
-            <Text style={styles.deleteBtn}>🗑</Text>
-          </TouchableOpacity>
-        )}
+        {Number(item.reviewerId) === Number(playerId) && (
+  <TouchableOpacity onPress={() => handleDeleteReview(item.id)}>
+    <Text style={styles.deleteBtn}>🗑</Text>
+  </TouchableOpacity>
+)}
+
+
       </View>
 
       <Text style={styles.reviewText}>💬 {item.comment}</Text>
@@ -265,13 +267,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20
   },
-  reviewCard: {
+reviewCard: {
   backgroundColor: '#f9f9f9',
   padding: 12,
   borderRadius: 8,
   marginBottom: 10,
   borderWidth: 1,
-  borderColor: '#ccc',
+  borderColor: '#ccc'
 },
 reviewHeader: {
   flexDirection: 'row',
@@ -282,16 +284,19 @@ reviewHeader: {
 reviewRating: {
   fontSize: 16,
   fontWeight: 'bold',
-  color: '#4CAF50'
+  
 },
 reviewText: {
   fontSize: 14,
+  color: '#333',
 },
 deleteBtn: {
+  fontSize: 16,
   color: '#F44336',
-  fontSize: 18,
-  paddingHorizontal: 6,
+  fontWeight: 'bold',
+  paddingHorizontal: 8
 }
+
 ,
   playerCard: {
   backgroundColor: '#f9f9f9',
