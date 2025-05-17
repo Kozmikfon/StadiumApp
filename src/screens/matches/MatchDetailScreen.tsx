@@ -105,6 +105,24 @@ const MatchDetailScreen =({ navigation }: any) => {
     }
   };
 
+  //yorum silme
+  const handleDeleteReview = async (reviewId: number) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+
+    await axios.delete(`http://10.0.2.2:5275/api/Reviews/${reviewId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    Alert.alert("✅ Silindi", "Yorum başarıyla silindi.");
+    setReviews(prev => prev.filter(r => r.id !== reviewId));
+  } catch (err) {
+    console.error("❌ Silme hatası:", err);
+    Alert.alert("Hata", "Yorum silinemedi.");
+  }
+};
+
+
   if (loading) {
     return <ActivityIndicator size="large" color="#1976D2" style={{ marginTop: 30 }} />;
   }
@@ -212,15 +230,25 @@ const MatchDetailScreen =({ navigation }: any) => {
           <Text style={styles.empty}>Henüz yorum yapılmamış.</Text>
         ) : (
           <FlatList
-            data={reviews}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.offerCard}>
-                <Text>⭐ Puan: {item.rating}</Text>
-                <Text>💬 Yorum: {item.comment}</Text>
-              </View>
-            )}
-          />
+  data={reviews}
+  keyExtractor={(item) => item.id.toString()}
+  renderItem={({ item }) => (
+    <View style={styles.reviewCard}>
+      <View style={styles.reviewHeader}>
+        <Text style={styles.reviewRating}>⭐ {item.rating}</Text>
+        {/* Eğer yorum yapan kişi giriş yapan oyuncuysa sil butonu göster */}
+        {item.reviewerId === playerId && (
+          <TouchableOpacity onPress={() => handleDeleteReview(item.id)}>
+            <Text style={styles.deleteBtn}>🗑</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <Text style={styles.reviewText}>💬 {item.comment}</Text>
+    </View>
+  )}
+/>
+
         )}
       </>
     )}
@@ -237,6 +265,34 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20
   },
+  reviewCard: {
+  backgroundColor: '#f9f9f9',
+  padding: 12,
+  borderRadius: 8,
+  marginBottom: 10,
+  borderWidth: 1,
+  borderColor: '#ccc',
+},
+reviewHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 6,
+},
+reviewRating: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#4CAF50'
+},
+reviewText: {
+  fontSize: 14,
+},
+deleteBtn: {
+  color: '#F44336',
+  fontSize: 18,
+  paddingHorizontal: 6,
+}
+,
   playerCard: {
   backgroundColor: '#f9f9f9',
   padding: 12,
