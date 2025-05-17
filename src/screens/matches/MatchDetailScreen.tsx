@@ -84,28 +84,49 @@ const MatchDetailScreen =({ navigation }: any) => {
     }, [matchId])
   );
 
+const translateStatus = (status: string) => {
+  switch (status) {
+    case "Accepted": return "Kabul Edildi";
+    case "Rejected": return "Reddedildi";
+    case "Pending": return "Beklemede";
+    default: return status;
+  }
+};
 
-  const handleUpdateStatus = async (offerId: number, newStatus: string) => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.put(`http://10.0.2.2:5275/api/Offers/update-status/${offerId}`, `"${newStatus}"`, {
+  const handleUpdateStatus = async (offerId: number, newStatus: "Accepted" | "Rejected") => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    await axios.put(
+      `http://10.0.2.2:5275/api/Offers/update-status/${offerId}`,
+      `"${newStatus}"`,
+      {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
-      });
+      }
+    );
 
-      Alert.alert("✅ Başarılı", `Teklif "${newStatus}" olarak güncellendi.`);
-      const updated = offers.map(o =>
-        o.id === offerId ? { ...o, status: newStatus } : o
-      );
-      setOffers(updated);
-    } catch (error) {
-      console.error("❌ Güncelleme hatası:", error);
-      Alert.alert("Hata", "Teklif durumu güncellenemedi.");
-    }
-    
-  };
+    Alert.alert("✅ Başarılı", `Teklif "${translateStatus(newStatus)}" olarak güncellendi.`);
+
+    // ✅ Listeyi güncelle
+    const refreshedOffers = await axios.get(`http://10.0.2.2:5275/api/Offers`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const refreshedAccepted = await axios.get(`http://10.0.2.2:5275/api/Offers/accepted-by-match/${matchId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    setOffers(refreshedOffers.data.filter((o: any) => o.matchId === matchId));
+    setAcceptedOffers(refreshedAccepted.data);
+  } catch (error) {
+    console.error("❌ Güncelleme hatası:", error);
+    Alert.alert("Hata", "Teklif durumu güncellenemedi.");
+  }
+};
+
+
 
   const removeOffer = async (offerId: number) => {
     try {
@@ -162,20 +183,20 @@ const MatchDetailScreen =({ navigation }: any) => {
         <View style={styles.offerCard}>
           <Text>Gönderen Oyuncu ID: {item.senderId}</Text>
           <Text>Alıcı Oyuncu ID: {item.receiverId}</Text>
-          <Text>Durum: {item.status}</Text>
+          <Text>Durum: {translateStatus(item.status)}</Text>
 
-          {item.status === "Beklemede" && item.receiverId === playerId && (
+          {item.status === "Pending" && item.receiverId === playerId && (
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
-                onPress={() => handleUpdateStatus(item.id, "Kabul Edildi")}
+                onPress={() => handleUpdateStatus(item.id, "Accepted")}
               >
                 <Text style={styles.statusText}>Kabul Et</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.statusButton, { backgroundColor: '#F44336' }]}
-                onPress={() => handleUpdateStatus(item.id, "Reddedildi")}
+                onPress={() => handleUpdateStatus(item.id, "Rejected")}
               >
                 <Text style={styles.statusText}>Reddet</Text>
               </TouchableOpacity>
@@ -193,7 +214,7 @@ const MatchDetailScreen =({ navigation }: any) => {
       renderItem={({ item }) => (
         <View style={styles.playerCard}>
           <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{item.receiverName}</Text>
-          <Text>Teklif Durumu: {item.status}</Text>
+          <Text>Teklif Durumu: {translateStatus(item.status)}</Text>
 
           {playerStats[item.receiverId] ? (
             <View style={styles.playerStats}>
@@ -246,47 +267,43 @@ const MatchDetailScreen =({ navigation }: any) => {
           <Text style={styles.empty}>Henüz yorum yapılmamış.</Text>
         ) : (
           <FlatList
-  data={reviews}
-  keyExtractor={(item) => item.id.toString()}
-  renderItem={({ item }) => (
-    <View style={styles.reviewCard}>
-      <View style={styles.reviewHeader}>
-        <Text style={styles.reviewRating}>⭐ {item.rating}</Text>
-
-        {/* ✅ Kullanıcı kendi yorumunu yaptıysa silme butonu */}
-        {Number(item.reviewerId) === Number(playerId) && (
-          <TouchableOpacity
-            onPress={() => {
-              Alert.alert(
-                "Yorumu Sil",
-                "Bu yorumu silmek istediğinize emin misiniz?",
-                [
-                  { text: "İptal", style: "cancel" },
-                  {
-                    text: "Sil",
-                    style: "destructive",
-                    onPress: () => handleDeleteReview(item.id)
-                  }
-                ]
-              );
-            }}
-          >
-            <Text style={styles.deleteBtn}>🗑</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <Text style={styles.reviewText}>💬 {item.comment}</Text>
-    </View>
-  )}
-/>
-
-
+            data={reviews}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <Text style={styles.reviewRating}>⭐ {item.rating}</Text>
+                  {Number(item.reviewerId) === Number(playerId) && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        Alert.alert(
+                          "Yorumu Sil",
+                          "Bu yorumu silmek istediğinize emin misiniz?",
+                          [
+                            { text: "İptal", style: "cancel" },
+                            {
+                              text: "Sil",
+                              style: "destructive",
+                              onPress: () => handleDeleteReview(item.id)
+                            }
+                          ]
+                        );
+                      }}
+                    >
+                      <Text style={styles.deleteBtn}>🗑</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <Text style={styles.reviewText}>💬 {item.comment}</Text>
+              </View>
+            )}
+          />
         )}
       </>
     )}
   </View>
 );
+
 }
 
 const styles = StyleSheet.create({
