@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { jwtDecode } from 'jwt-decode';
 
 const CreateReviewScreen = () => {
@@ -38,8 +38,8 @@ const CreateReviewScreen = () => {
         {
           matchId,
           reviewerId,
-          reviewedUserId: null, // 👈 Oyuncu yorumu değil!
-          reviewedTeamId: null, // 👈 Takım yorumu değil!
+          reviewedUserId: null,
+          reviewedTeamId: null,
           comment,
           rating
         },
@@ -49,7 +49,10 @@ const CreateReviewScreen = () => {
       );
 
       Alert.alert("✅ Başarılı", "Yorum gönderildi.");
-      navigation.goBack();
+      navigation.navigate('MatchDetail', {
+        matchId,
+        refresh: true
+      });
     } catch (error) {
       console.error("❌ Gönderme hatası:", error);
       Alert.alert("Hata", "Yorum gönderilemedi.");

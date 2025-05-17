@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, FlatList, Alert, TouchableOpacity, Button } from 'react-native';
 import axios from 'axios';
-import { useRoute } from '@react-navigation/native';
+import { useRoute,useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
@@ -37,9 +37,9 @@ const MatchDetailScreen =({ navigation }: any) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         for (const offer of acceptedRes.data) {
-  const statsRes = await axios.get(`http://10.0.2.2:5275/api/Players/stats/${offer.receiverId}`);
-  setPlayerStats(prev => ({ ...prev, [offer.receiverId]: statsRes.data }));
-}
+        const statsRes = await axios.get(`http://10.0.2.2:5275/api/Players/stats/${offer.receiverId}`);
+        setPlayerStats(prev => ({ ...prev, [offer.receiverId]: statsRes.data }));
+  }
 
         setMatch(matchRes.data);
         const filteredOffers = offersRes.data.filter((o: any) => o.matchId === matchId);
@@ -65,10 +65,25 @@ const MatchDetailScreen =({ navigation }: any) => {
     
 
     
-
     fetchDetails();
-    fetchReviews();
   }, [matchId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchReviews = async () => {
+        try {
+          const res = await axios.get(`http://10.0.2.2:5275/api/Reviews`);
+          const onlyThisMatch = res.data.filter((r: any) => r.matchId === matchId);
+          setReviews(onlyThisMatch);
+        } catch (err) {
+          console.error("❌ Yorumlar alınamadı:", err);
+        }
+      };
+
+      fetchReviews();
+    }, [matchId])
+  );
+
 
   const handleUpdateStatus = async (offerId: number, newStatus: string) => {
     try {
@@ -89,6 +104,7 @@ const MatchDetailScreen =({ navigation }: any) => {
       console.error("❌ Güncelleme hatası:", error);
       Alert.alert("Hata", "Teklif durumu güncellenemedi.");
     }
+    
   };
 
   const removeOffer = async (offerId: number) => {
@@ -236,20 +252,35 @@ const MatchDetailScreen =({ navigation }: any) => {
     <View style={styles.reviewCard}>
       <View style={styles.reviewHeader}>
         <Text style={styles.reviewRating}>⭐ {item.rating}</Text>
-        {/* Eğer yorum yapan kişi giriş yapan oyuncuysa sil butonu göster */}
+
+        {/* ✅ Kullanıcı kendi yorumunu yaptıysa silme butonu */}
         {Number(item.reviewerId) === Number(playerId) && (
-  <TouchableOpacity onPress={() => handleDeleteReview(item.id)}>
-    <Text style={styles.deleteBtn}>🗑</Text>
-  </TouchableOpacity>
-)}
-
-
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                "Yorumu Sil",
+                "Bu yorumu silmek istediğinize emin misiniz?",
+                [
+                  { text: "İptal", style: "cancel" },
+                  {
+                    text: "Sil",
+                    style: "destructive",
+                    onPress: () => handleDeleteReview(item.id)
+                  }
+                ]
+              );
+            }}
+          >
+            <Text style={styles.deleteBtn}>🗑</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <Text style={styles.reviewText}>💬 {item.comment}</Text>
     </View>
   )}
 />
+
 
         )}
       </>
