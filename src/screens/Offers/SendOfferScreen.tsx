@@ -9,15 +9,14 @@ import { Picker } from '@react-native-picker/picker';
 const SendOfferScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { receiverId } = route.params;
+  const { receiverId, matchId: matchIdFromRoute } = route.params ?? {};
 
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState<any[]>([]);
-  const [selectedMatchId, setSelectedMatchId] = useState<number>(0);
+  const [selectedMatchId, setSelectedMatchId] = useState<number>(matchIdFromRoute || 0);
   const [senderId, setSenderId] = useState<number | null>(null);
   const [acceptedCount, setAcceptedCount] = useState(0);
 
-  // ✔️ Teklif sayısını çek
   const fetchAcceptedCount = async (matchId: number) => {
     try {
       const res = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${matchId}`);
@@ -32,12 +31,14 @@ const SendOfferScreen = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const decoded: any = jwtDecode(token || '');
+        setSenderId(Number(decoded.playerId));
 
-        // ✔️ Burada senderId'yi state olarak set ediyoruz
-        setSenderId(decoded.playerId);
-
-        const matchRes = await axios.get('http://10.0.2.2:5275/api/Matches');
-        setMatches(matchRes.data);
+        if (!matchIdFromRoute) {
+          const matchRes = await axios.get('http://10.0.2.2:5275/api/Matches');
+          setMatches(matchRes.data);
+        } else {
+          fetchAcceptedCount(matchIdFromRoute);
+        }
       } catch (err) {
         console.error('❌ Veriler alınamadı:', err);
         Alert.alert('Hata', 'Veriler alınırken sorun oluştu.');
@@ -54,7 +55,7 @@ const SendOfferScreen = () => {
   }, [selectedMatchId]);
 
   const handleSendOffer = async () => {
-    if (senderId === null || !receiverId || selectedMatchId === 0) {
+    if (!senderId || selectedMatchId === 0) {
       Alert.alert('⚠️ Eksik Bilgi', 'Lütfen tüm alanları doldurun.');
       return;
     }
@@ -70,9 +71,11 @@ const SendOfferScreen = () => {
 
       const offerDto = {
         senderId,
-        receiverId,
         matchId: selectedMatchId,
+        receiverId: receiverId ?? null
       };
+
+      console.log("🚀 Teklif DTO:", offerDto);
 
       await axios.post('http://10.0.2.2:5275/api/Offers', offerDto, {
         headers: { Authorization: `Bearer ${token}` }
@@ -95,23 +98,28 @@ const SendOfferScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🎯 Teklif Gönder</Text>
-      <Text>👤 Alıcı Oyuncu ID: {receiverId}</Text>
 
-      <Text style={{ marginTop: 20, fontWeight: 'bold' }}>📅 Maç Seçin:</Text>
-      <Picker
-        selectedValue={selectedMatchId}
-        onValueChange={(value) => setSelectedMatchId(value)}
-        style={{ backgroundColor: '#e0e0e0', marginVertical: 10 }}
-      >
-        <Picker.Item label="Bir maç seçin..." value={0} />
-        {matches.map((match: any) => (
-          <Picker.Item
-            key={match.id}
-            label={`#${match.id} - ${match.fieldName} (${new Date(match.matchDate).toLocaleDateString()})`}
-            value={match.id}
-          />
-        ))}
-      </Picker>
+      {receiverId && <Text>👤 Alıcı Oyuncu ID: {receiverId}</Text>}
+
+      {!matchIdFromRoute && (
+        <>
+          <Text style={{ marginTop: 20, fontWeight: 'bold' }}>📅 Maç Seçin:</Text>
+          <Picker
+            selectedValue={selectedMatchId}
+            onValueChange={(value) => setSelectedMatchId(value)}
+            style={{ backgroundColor: '#e0e0e0', marginVertical: 10 }}
+          >
+            <Picker.Item label="Bir maç seçin..." value={0} />
+            {matches.map((match: any) => (
+              <Picker.Item
+                key={match.id}
+                label={`#${match.id} - ${match.fieldName} (${new Date(match.matchDate).toLocaleDateString()})`}
+                value={match.id}
+              />
+            ))}
+          </Picker>
+        </>
+      )}
 
       <Text style={{ marginTop: 5, color: '#555', marginBottom: 10 }}>
         {acceptedCount}/14 oyuncu — {14 - acceptedCount} boş yer

@@ -127,7 +127,7 @@ const MatchList = ({ navigation }: any) => {
               {item.acceptedCount < 14 && (
                 <TouchableOpacity
                   style={{ marginTop: 8, backgroundColor: '#4CAF50', padding: 8, borderRadius: 6 }}
-                  onPress={() => navigation.navigate('SendOffer', { receiverId: item.id })}
+                  onPress={() => navigation.navigate('SendOffer', { matchId:item.id })}
                 >
                   <Text style={{ color: '#fff', textAlign: 'center', fontWeight: 'bold' }}>➕ Teklif Gönder</Text>
                 </TouchableOpacity>

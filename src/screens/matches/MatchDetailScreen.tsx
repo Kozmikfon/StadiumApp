@@ -73,6 +73,7 @@ const MatchDetailScreen =({ navigation }: any) => {
 useEffect(() => {
   console.log("📦 acceptedOffers", acceptedOffers);
 }, [acceptedOffers]);
+
   useFocusEffect(
     useCallback(() => {
       const fetchReviews = async () => {
