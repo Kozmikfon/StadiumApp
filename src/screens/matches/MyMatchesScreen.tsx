@@ -19,41 +19,52 @@ const MatchList = ({ navigation }: any) => {
   }, [filter, refresh, isFocused]);
 
   const fetchMatches = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('http://10.0.2.2:5275/api/Matches');
-      let filteredMatches = response.data;
+  try {
+    setLoading(true);
 
-      if (filter === 'today') {
-        const today = new Date().toISOString().split('T')[0];
-        filteredMatches = filteredMatches.filter((m: any) =>
-          new Date(m.matchDate).toISOString().startsWith(today)
-        );
-      } else if (filter === 'week') {
-        const today = new Date();
-        const weekEnd = new Date();
-        weekEnd.setDate(today.getDate() + 7);
+    const token = await AsyncStorage.getItem('token');
+    const decoded: any = jwtDecode(token || '');
+    const playerId = decoded.playerId;
 
-        filteredMatches = filteredMatches.filter((m: any) => {
-          const matchDate = new Date(m.matchDate);
-          return matchDate >= today && matchDate <= weekEnd;
-        });
-      }
+    const response = await axios.get(
+      `http://10.0.2.2:5275/api/Matches/byPlayer/${playerId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      setMatches(filteredMatches);
+    let filteredMatches = response.data;
 
-      // Accepted countları al
-      for (const match of filteredMatches) {
-        const countRes = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${match.id}`);
-        setAcceptedCounts(prev => ({ ...prev, [match.id]: countRes.data }));
-      }
+    // 🔹 Tarih filtrelemesi
+    if (filter === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      filteredMatches = filteredMatches.filter((m: any) =>
+        new Date(m.matchDate).toISOString().startsWith(today)
+      );
+    } else if (filter === 'week') {
+      const today = new Date();
+      const weekEnd = new Date();
+      weekEnd.setDate(today.getDate() + 7);
 
-    } catch (error) {
-      console.error('❌ Maçlar alınamadı:', error);
-    } finally {
-      setLoading(false);
+      filteredMatches = filteredMatches.filter((m: any) => {
+        const matchDate = new Date(m.matchDate);
+        return matchDate >= today && matchDate <= weekEnd;
+      });
     }
-  };
+
+    setMatches(filteredMatches);
+
+    // 🔹 Oyuncu sayısını getir
+    for (const match of filteredMatches) {
+      const countRes = await axios.get(`http://10.0.2.2:5275/api/Offers/count-accepted/${match.id}`);
+      setAcceptedCounts((prev) => ({ ...prev, [match.id]: countRes.data }));
+    }
+
+  } catch (error) {
+    console.error('❌ Maçlar alınamadı:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleJoin = async (teamId: number) => {
     try {

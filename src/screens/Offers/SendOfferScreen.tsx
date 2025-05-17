@@ -32,6 +32,8 @@ const SendOfferScreen = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const decoded: any = jwtDecode(token || '');
+
+        // ✔️ Burada senderId'yi state olarak set ediyoruz
         setSenderId(decoded.playerId);
 
         const matchRes = await axios.get('http://10.0.2.2:5275/api/Matches');
@@ -45,7 +47,6 @@ const SendOfferScreen = () => {
     init();
   }, []);
 
-  // ✔️ Maç seçimi değiştiğinde sayı güncelle
   useEffect(() => {
     if (selectedMatchId !== 0) {
       fetchAcceptedCount(selectedMatchId);
@@ -53,7 +54,7 @@ const SendOfferScreen = () => {
   }, [selectedMatchId]);
 
   const handleSendOffer = async () => {
-    if (!senderId || !receiverId || selectedMatchId === 0) {
+    if (senderId === null || !receiverId || selectedMatchId === 0) {
       Alert.alert('⚠️ Eksik Bilgi', 'Lütfen tüm alanları doldurun.');
       return;
     }
@@ -111,10 +112,10 @@ const SendOfferScreen = () => {
           />
         ))}
       </Picker>
-      <Text style={{ marginTop: 5, color: '#555', marginBottom: 10 }}>
-  {acceptedCount}/14 oyuncu — {14 - acceptedCount} boş yer
-</Text>
 
+      <Text style={{ marginTop: 5, color: '#555', marginBottom: 10 }}>
+        {acceptedCount}/14 oyuncu — {14 - acceptedCount} boş yer
+      </Text>
 
       {acceptedCount >= 14 ? (
         <Text style={{ color: 'red', marginTop: 10 }}>🛑 Bu maç dolu</Text>

@@ -96,7 +96,7 @@ const MatchList = ({ navigation }: any) => {
         <Button title="➕ Maç Oluştur" onPress={() => navigation.navigate('CreateMatch')} />
         <Button title="📋 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
       </View>
-      <Button title="🛡 Takım Oluştur" color="#6A1B9A" onPress={() => navigation.navigate('CreateTeam')} />
+      
       {matches.length === 0 ? (
         <Text style={styles.empty}>Henüz maç bulunamadı.</Text>
       ) : (
@@ -127,7 +127,7 @@ const MatchList = ({ navigation }: any) => {
               {item.acceptedCount < 14 && (
                 <TouchableOpacity
                   style={{ marginTop: 8, backgroundColor: '#4CAF50', padding: 8, borderRadius: 6 }}
-                  onPress={() => navigation.navigate('SendOffer', { matchId: item.id })}
+                  onPress={() => navigation.navigate('SendOffer', { receiverId: item.id })}
                 >
                   <Text style={{ color: '#fff', textAlign: 'center', fontWeight: 'bold' }}>➕ Teklif Gönder</Text>
                 </TouchableOpacity>

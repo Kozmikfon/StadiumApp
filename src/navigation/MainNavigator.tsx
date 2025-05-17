@@ -14,8 +14,8 @@ import PlayerDetail from '../screens/playerPanel/PlayerDetail';
 import CreateMatchScreen from '../screens/matches/CreateMatchScreen';
 import PlayerProfileScreen from '../screens/userPanel/panels/PlayerProfileScreen';
 import MyMatchesScreen from '../screens/matches/MyMatchesScreen';
-import SendOfferScreen from '../screens/playerPanel/SendOfferScreen';
-import MyOffersScreen from '../screens/playerPanel/MyOffersScreen';
+import SendOfferScreen from '../screens/Offers/SendOfferScreen';
+import MyOffersScreen from '../screens/Offers/MyOffersScreen';
 import MatchDetailScreen from '../screens/matches/MatchDetailScreen';
 import CreateTeamScreen from '../screens/TeamPanel/CreateTeamScreen';
 import CreateReviewScreen from '../screens/Review/CreateReviewScreen';
@@ -29,6 +29,7 @@ import TeamCompareScreen from '../screens/TeamPanel/SelectTeam/TeamCompareScreen
 import TopTeamsScreen from '../screens/TeamPanel/TopTeam/TopTeamsScreen';
 import TopPlayersScreen from '../screens/playerPanel/TopPlayer/TopPlayersScreen';
 import MatchCalendarScreen from '../screens/matches/calendar/MatchCalendarScreen';
+import CaptainOffersScreen from '../screens/Offers/CaptainOffersScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -64,7 +65,7 @@ const MainNavigator = () => {
             <Stack.Screen name="TopTeams" component={TopTeamsScreen} />
             <Stack.Screen name="TopPlayers" component={TopPlayersScreen} />
             <Stack.Screen name="MatchCalendar" component={MatchCalendarScreen} />
-            
+            <Stack.Screen name="CaptainOffer" component={CaptainOffersScreen} />
         </Stack.Navigator>
     );
 };

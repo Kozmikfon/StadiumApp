@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Alert, TouchableOpacity, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
@@ -9,6 +9,7 @@ const MyOffersScreen = ({ navigation }: any) => {
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   //const navigation = useNavigation();
+  const [captainOffers, setCaptainOffers] = useState<any[]>([]);
 
   const fetchOffers = async () => {
     try {
@@ -28,6 +29,7 @@ const MyOffersScreen = ({ navigation }: any) => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -168,10 +170,12 @@ const MyOffersScreen = ({ navigation }: any) => {
 </TouchableOpacity>
 
 
+
     </View>
   )}
   ListEmptyComponent={<Text style={styles.empty}>Henüz reddettiğiniz teklif yok.</Text>}
 />
+<Button title="🛡 Maça gelen teklifler" color="#6A1B9A" onPress={() => navigation.navigate('CaptainOffer')} />
 
     </View>
   );
