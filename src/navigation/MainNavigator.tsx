@@ -30,6 +30,8 @@ import TopTeamsScreen from '../screens/TeamPanel/TopTeam/TopTeamsScreen';
 import TopPlayersScreen from '../screens/playerPanel/TopPlayer/TopPlayersScreen';
 import MatchCalendarScreen from '../screens/matches/calendar/MatchCalendarScreen';
 import CaptainOffersScreen from '../screens/Offers/CaptainOffersScreen';
+import MatchReviewsScreen from '../screens/Review/MatchReviewsScreen';
+import MarkAttendanceScreen from '../screens/Attendance/MarkAttendanceScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -66,6 +68,9 @@ const MainNavigator = () => {
             <Stack.Screen name="TopPlayers" component={TopPlayersScreen} />
             <Stack.Screen name="MatchCalendar" component={MatchCalendarScreen} />
             <Stack.Screen name="CaptainOffer" component={CaptainOffersScreen} />
+            <Stack.Screen name="MatchReviews" component={MatchReviewsScreen} />
+            <Stack.Screen name="MarkAttendance" component={MarkAttendanceScreen} />
+
         </Stack.Navigator>
     );
 };

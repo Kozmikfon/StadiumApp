@@ -18,6 +18,8 @@ const MatchDetailScreen =({ navigation }: any) => {
   const [showReviews, setShowReviews] = useState(false);
   const [playerStats, setPlayerStats] = useState<{ [key: number]: any }>({});
 
+
+  
   useEffect(() => {
     const fetchDetails = async () => {
       try {
@@ -232,6 +234,11 @@ const translateStatus = (status: string) => {
           ) : (
             <Text style={{ fontStyle: 'italic', color: '#999' }}>Yükleniyor...</Text>
           )}
+          <Button
+  title="📝 Katılım Durumu"
+  onPress={() => navigation.navigate('MarkAttendance', { matchId })}
+/>
+
 
           <Button
             title="📝 Değerlendir"
@@ -257,58 +264,20 @@ const translateStatus = (status: string) => {
       ListEmptyComponent={<Text style={styles.empty}>Henüz kabul edilen oyuncu yok.</Text>}
     />
 
-    <TouchableOpacity
-      onPress={() => setShowReviews(!showReviews)}
-      style={{ backgroundColor: '#1976D2', padding: 10, borderRadius: 6, marginTop: 20 }}
-    >
-      <Text style={{ color: 'white', textAlign: 'center' }}>
-        {showReviews ? '⬆️ Yorumları Gizle' : '💬 Yorumları Göster'}
-      </Text>
-    </TouchableOpacity>
+    {/* 💬 Yorumları Görüntüle butonu */}
+   <TouchableOpacity
+  onPress={() => navigation.navigate('MatchReviews', { matchId: match.id })}
+  style={{ backgroundColor: '#1976D2', padding: 10, borderRadius: 6, marginTop: 20 }}
+>
+  <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
+    📝 Yorum Yap & Yorumları Görüntüle
+  </Text>
+</TouchableOpacity>
 
-    {showReviews && (
-      <>
-        <Text style={[styles.title, { fontSize: 18, marginTop: 20 }]}>🗣 Yorumlar</Text>
-        {reviews.length === 0 ? (
-          <Text style={styles.empty}>Henüz yorum yapılmamış.</Text>
-        ) : (
-          <FlatList
-            data={reviews}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.reviewCard}>
-                <View style={styles.reviewHeader}>
-                  <Text style={styles.reviewRating}>⭐ {item.rating}</Text>
-                  {Number(item.reviewerId) === Number(playerId) && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        Alert.alert(
-                          "Yorumu Sil",
-                          "Bu yorumu silmek istediğinize emin misiniz?",
-                          [
-                            { text: "İptal", style: "cancel" },
-                            {
-                              text: "Sil",
-                              style: "destructive",
-                              onPress: () => handleDeleteReview(item.id)
-                            }
-                          ]
-                        );
-                      }}
-                    >
-                      <Text style={styles.deleteBtn}>🗑</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <Text style={styles.reviewText}>💬 {item.comment}</Text>
-              </View>
-            )}
-          />
-        )}
-      </>
-    )}
+
   </View>
 );
+
 
 }
 
