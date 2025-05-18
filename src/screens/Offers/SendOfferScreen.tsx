@@ -30,7 +30,12 @@ const SendOfferScreen = () => {
     const init = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const decoded: any = jwtDecode(token || '');
+        if (!token) {
+          Alert.alert("Giriş yapmanız gerekiyor.");
+          return;
+        }
+
+        const decoded: any = jwtDecode(token);
         setSenderId(Number(decoded.playerId));
 
         if (!matchIdFromRoute) {
@@ -54,42 +59,72 @@ const SendOfferScreen = () => {
     }
   }, [selectedMatchId]);
 
-  const handleSendOffer = async () => {
-    if (!senderId || selectedMatchId === 0) {
-      Alert.alert('⚠️ Eksik Bilgi', 'Lütfen tüm alanları doldurun.');
-      return;
+ const handleSendOffer = async () => {
+  if (!senderId || selectedMatchId === 0) {
+    Alert.alert('⚠️ Eksik Bilgi', 'Gönderen ya da maç bilgisi eksik.');
+    return;
+  }
+
+  if (acceptedCount >= 14) {
+    Alert.alert("⚠️ Uyarı", "Bu maç dolu. Başka maç seçin.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const token = await AsyncStorage.getItem('token');
+
+    const offerDto = {
+      senderId,
+      matchId: selectedMatchId,
+      receiverId: receiverId !== undefined ? receiverId : null
+    };
+
+    console.log("🚀 Teklif DTO:", offerDto);
+
+    await axios.post('http://10.0.2.2:5275/api/Offers', offerDto, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    Alert.alert('✅ Başarılı', 'Teklif gönderildi.');
+    navigation.goBack();
+
+    } catch (err: any) {
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status;
+    const data = err.response?.data;
+
+    console.log("❌ Hata Detayı:", {
+      status,
+      data
+    });
+
+    if (status === 400 || status === 409) {
+      let message = "Bu oyuncuya veya maça zaten teklif gönderdiniz.";
+
+      // Eğer backend'den string açıklama geldiyse onu göster:
+      if (typeof data === 'string') {
+        message = data;
+      } else if (data?.message) {
+        message = data.message;
+      }
+
+      Alert.alert("⚠️ Uyarı", message);
+    } else {
+      Alert.alert("Hata", "Teklif gönderilirken beklenmeyen bir hata oluştu.");
     }
+  } else {
+    Alert.alert("Hata", "Bilinmeyen bir hata oluştu.");
+  }
 
-    if (acceptedCount >= 14) {
-      Alert.alert("⚠️ Uyarı", "Bu maç dolu. Başka maç seçin.");
-      return;
-    }
+  console.error('❌ Teklif gönderilemedi:', err);
+}
 
-    try {
-      setLoading(true);
-      const token = await AsyncStorage.getItem('token');
+ finally {
+    setLoading(false);
+  }
+};
 
-      const offerDto = {
-        senderId,
-        matchId: selectedMatchId,
-        receiverId: receiverId ?? null
-      };
-
-      console.log("🚀 Teklif DTO:", offerDto);
-
-      await axios.post('http://10.0.2.2:5275/api/Offers', offerDto, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      Alert.alert('✅ Başarılı', 'Teklif gönderildi.');
-      navigation.goBack();
-    } catch (err) {
-      console.error('❌ Teklif gönderilemedi:', err);
-      Alert.alert('Hata', 'Teklif gönderilirken bir sorun oluştu.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#1976D2" style={{ marginTop: 30 }} />;

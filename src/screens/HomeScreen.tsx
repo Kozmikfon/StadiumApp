@@ -26,64 +26,67 @@ const HomeScreen = ({ navigation }: any) => {
     const [teamName, setTeamName] = useState('');
     // JWT'den bilgileri çekelim:
        useEffect(() => {
-        const getUserInfo = async () => {
-            const token = await AsyncStorage.getItem('token');
-            if (token) {
-                const decoded: any = jwtDecode(token);
-                console.log("✅ JWT Bilgileri:", decoded);
+  const getUserInfo = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) return;
 
-                setEmail(decoded.sub);
-                setRole(decoded.role);
+    const decoded: any = jwtDecode(token);
+    console.log("✅ JWT Bilgileri:", decoded);
 
-                const userId = decoded.userId;
+    setEmail(decoded.sub);
+    setRole(decoded.role);
+    const userId = decoded.userId;
 
-                if (decoded.firstName && decoded.lastName) {
-                    setUserName(`${decoded.firstName} ${decoded.lastName}`);
-                } else {
-                    try {
-                        const userResponse = await axios.get(`http://10.0.2.2:5275/api/Users/${userId}`);
-                        const user = userResponse.data;
-                        setUserName(`${user.firstName} ${user.lastName}`);
-                    } catch (error) {
-                        console.log("❌ Kullanıcı bilgileri alınamadı", error);
-                        setUserName("Bilinmiyor");
-                    }
-                }
+    if (decoded.firstName && decoded.lastName) {
+      setUserName(`${decoded.firstName} ${decoded.lastName}`);
+    } else {
+      try {
+        const userResponse = await axios.get(`http://10.0.2.2:5275/api/Users/${userId}`);
+        const user = userResponse.data;
+        setUserName(`${user.firstName} ${user.lastName}`);
+      } catch (error) {
+        console.log("❌ Kullanıcı bilgileri alınamadı", error);
+        setUserName("Bilinmiyor");
+      }
+    }
 
-                if (decoded.role === 'Player') {
-                    try {
-                        const playerResponse = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
-                        const player = playerResponse.data;
+    // 🟢 ROL kontrolü olmadan her zaman player bilgisi çek
+    try {
+      const playerResponse = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
+      const player = playerResponse.data;
 
-                        setPosition(player.position || 'Belirtilmedi');
-                        setSkillLevel(player.skillLevel?.toString() || 'Belirtilmedi');
-                        setRating(player.rating ?? 0);
-                        setTeamName(player.teamName || 'Takımsız');
+      setPosition(player.position || 'Belirtilmedi');
+      setSkillLevel(
+        player.skillLevel !== null && player.skillLevel !== undefined
+          ? player.skillLevel.toString()
+          : 'Belirtilmedi'
+      );
+      setRating(
+        player.rating !== null && player.rating !== undefined
+          ? player.rating
+          : 0
+      );
+      setTeamName(player.teamName || 'Takımsız');
 
-                        console.log("✅ Oyuncu bilgileri çekildi:", player);
-  
-                  } catch (error: any) {
-                      console.log('❌ Oyuncu bilgileri çekilemedi:', error);
-  
-                      // Eğer oyuncu kaydı yoksa direkt profil tamamlama ekranına yönlendir:
-                      Alert.alert(
-                          "Profil Eksik",
-                          "Futbol bilgilerin eksik. Profilini tamamlaman gerekiyor.",
-                          [
-                              {
-                                  text: "Tamam",
-                                  onPress: () => navigation.replace('CompletePlayerProfile')
-                              }
-                          ]
-                      );
-                  }
-              }
+      console.log("✅ Oyuncu bilgileri çekildi:", player);
+    } catch (error) {
+      console.log("❌ Oyuncu bilgileri çekilemedi:", error);
+      Alert.alert(
+        "Profil Eksik",
+        "Futbol bilgilerin eksik. Profilini tamamlaman gerekiyor.",
+        [
+          {
+            text: "Tamam",
+            onPress: () => navigation.replace('CompletePlayerProfile')
           }
-      };
-  
-      getUserInfo();
-  }, []);
-  
+        ]
+      );
+    }
+  };
+
+  getUserInfo();
+}, []);
+
   
   
 
@@ -189,49 +192,50 @@ const HomeScreen = ({ navigation }: any) => {
             />            
             {/* Modal Profil */}
               <Modal
-                animationType="slide"
-                transparent={true}
-                visible={profileVisible}
-                onRequestClose={() => setProfileVisible(false)}
+  animationType="slide"
+  transparent={true}
+  visible={profileVisible}
+  onRequestClose={() => setProfileVisible(false)}
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <Text style={styles.modalTitle}>👤 Kullanıcı Bilgileri</Text>
+        <Text>Ad Soyad: {userName}</Text>
+        <Text>Email: {email}</Text>
+        <Text>Rol: {role}</Text>
+
+        {(role === 'Player' || role === 'User') && (
+          <>
+<Text>Pozisyon: {position}</Text>
+<Text>Seviye: {skillLevel}</Text>
+
+
+
+            <TouchableOpacity
+              style={styles.completeButtons}
+              onPress={() => {
+                setProfileVisible(false);
+                navigation.navigate('PlayerProfile');
+              }}
             >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>👤 Kullanıcı Bilgileri</Text>
-                        <Text>Ad Soyad: {userName}</Text>
-                        <Text>Email: {email}</Text>
-                        <Text>Rol: {role}</Text>
+              <Text style={{ color: 'white' }}>👤 Profili Aç</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
-                        {(role === 'Player' || role === 'User') && (
-                            <>
-                                <Text>Pozisyon: {position || 'Belirtilmedi'}</Text>
-                                <Text>Seviye: {skillLevel || '0'}</Text>
-                                <Text>Rating: {rating || '0'}</Text>
+        <TouchableOpacity style={styles.logoutButtons} onPress={handleLogout}>
+          <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
+        </TouchableOpacity>
 
-                                <TouchableOpacity
-                                    style={styles.completeButtons}
-                                    onPress={() => {
-                                        setProfileVisible(false);
-                                        navigation.navigate('PlayerProfile');
-                                    }}
-                                >
-                                    <Text style={{ color: 'white' }}>👤 Profili Aç</Text>
-                                </TouchableOpacity>
-                            </>
-                        )}
+        <TouchableOpacity onPress={() => setProfileVisible(false)}>
+          <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
 
-                        <TouchableOpacity
-                            style={styles.logoutButtons}
-                            onPress={handleLogout}
-                        >
-                            <Text style={{ color: 'white' }}>🔓 Çıkış Yap</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={() => setProfileVisible(false)}>
-                            <Text style={{ marginTop: 10, color: '#1976D2' }}>Kapat</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
 
 
 
