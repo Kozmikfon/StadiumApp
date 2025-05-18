@@ -186,8 +186,7 @@ const HomeScreen = ({ navigation }: any) => {
                     </View>
                 )}
                 showsHorizontalScrollIndicator={false}
-            />
-
+            />            
             {/* Modal Profil */}
               <Modal
                 animationType="slide"

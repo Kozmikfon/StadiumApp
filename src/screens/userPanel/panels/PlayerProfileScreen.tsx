@@ -1,47 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Button, Alert, ActivityIndicator , Dimensions, ScrollView} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import { BarChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native';
 
 const PlayerProfileScreen = ({ navigation }: any) => {
   const [player, setPlayer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<number | null>(null);
   const [stats, setStats] = useState({
-  totalMatches: 0,
-  totalOffers: 0,
-  averageRating: 0,
-  membershipDays: 0,
-});
+    totalMatches: 0,
+    totalOffers: 0,
+    averageRating: 0,
+    membershipDays: 0,
+  });
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) return;
+  // 🔄 Oyuncu bilgilerini çek
+  const fetchPlayerData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
 
-        const decoded: any = jwtDecode(token);
-        const uid = decoded.userId;
-        setUserId(uid);
+      const decoded: any = jwtDecode(token);
+      const uid = decoded.userId;
+      setUserId(uid);
 
-        const response = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${uid}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      const response = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${uid}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-        setPlayer(response.data);
-      } catch (error) {
-        console.error('Oyuncu bilgisi alınamadı:', error);
-        Alert.alert('Hata', 'Oyuncu bilgisi getirilemedi.');
-      } finally {
-        setLoading(false);
-      }
-    };
+      setPlayer(response.data);
+    } catch (error) {
+      console.error('❌ Oyuncu bilgisi alınamadı:', error);
+      Alert.alert('Hata', 'Oyuncu bilgisi getirilemedi.');
+    }
+  };
 
-    init();
-  }, []);
-  useEffect(() => {
+  // 📊 İstatistikleri çek
   const fetchStats = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -53,14 +50,34 @@ const PlayerProfileScreen = ({ navigation }: any) => {
 
       setStats(res.data);
     } catch (err) {
-      console.error("Stat çekilemedi", err);
+      console.error("❌ Stat çekilemedi", err);
     }
   };
 
-  fetchStats();
-}, [player]);
+  // 🔄 Sayfa ilk açıldığında veri çek
+  useEffect(() => {
+    const initialize = async () => {
+      setLoading(true);
+      await fetchPlayerData();
+      setLoading(false);
+    };
 
+    initialize();
+  }, []);
 
+  // 🔁 Sayfa her ziyaret edildiğinde yeniden veri çek
+  useFocusEffect(
+    useCallback(() => {
+      fetchPlayerData();
+    }, [])
+  );
+
+  // 🧮 player değişince istatistik çek
+  useEffect(() => {
+    fetchStats();
+  }, [player]);
+
+  // Takımdan ayrıl
   const handleLeaveTeam = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -75,6 +92,7 @@ const PlayerProfileScreen = ({ navigation }: any) => {
     }
   };
 
+  // Takıma katıl ekranına git
   const handleJoinTeam = () => {
     if (userId) {
       navigation.navigate('TeamList', { userId });
@@ -82,8 +100,7 @@ const PlayerProfileScreen = ({ navigation }: any) => {
       Alert.alert("Hata", "Kullanıcı bilgisi alınamadı.");
     }
   };
-
-  if (loading) {
+    if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 50 }} />;
   }
 
