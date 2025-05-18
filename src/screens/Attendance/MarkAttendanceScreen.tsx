@@ -10,6 +10,7 @@ const MarkAttendanceScreen = ({ route }: any) => {
   const [playerId, setPlayerId] = useState<number | null>(null);
   const [attendanceId, setAttendanceId] = useState<number | null>(null);
   const [isPresent, setIsPresent] = useState<boolean | null>(null);
+  const [matchDate, setMatchDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,6 +19,13 @@ const MarkAttendanceScreen = ({ route }: any) => {
       const pid = decoded.playerId;
       setPlayerId(pid);
 
+      // Maç tarihi
+      const matchRes = await axios.get(`http://10.0.2.2:5275/api/Matches/${matchId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMatchDate(new Date(matchRes.data.matchDate));
+
+      // Katılım bilgisi
       const res = await axios.get(`http://10.0.2.2:5275/api/Attendance/match/${matchId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -38,12 +46,12 @@ const MarkAttendanceScreen = ({ route }: any) => {
       await axios.post('http://10.0.2.2:5275/api/Attendance', {
         playerId,
         matchId,
-        isPresent: true
+        isPresent: false
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      Alert.alert('✅ Katıldım olarak işaretlendi');
-      setIsPresent(true);
+      Alert.alert('❌ Katılamayacağınız kaydedildi');
+      setIsPresent(false);
     } else {
       const updated = !isPresent;
       await axios.put(`http://10.0.2.2:5275/api/Attendance/${attendanceId}`, updated, {
@@ -54,17 +62,25 @@ const MarkAttendanceScreen = ({ route }: any) => {
     }
   };
 
+  const now = new Date();
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>📝 Maç Katılım Durumu</Text>
 
-      <TouchableOpacity onPress={handleToggle} style={[styles.button, {
-        backgroundColor: isPresent ? '#4CAF50' : '#F44336'
-      }]}>
-        <Text style={styles.buttonText}>
-          {isPresent ? '✔️ Katıldım' : '❌ Katılamadım'}
-        </Text>
-      </TouchableOpacity>
+      {matchDate ? (
+        now < matchDate ? (
+          <TouchableOpacity onPress={handleToggle} style={[styles.button, {
+            backgroundColor: '#F44336'
+          }]}>
+            <Text style={styles.buttonText}>❌ Katılamayacağım</Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.attendedText}>✔️ Bu maça katıldınız.</Text>
+        )
+      ) : (
+        <Text>Maç bilgisi yükleniyor...</Text>
+      )}
     </View>
   );
 };
@@ -80,6 +96,11 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16
+  },
+  attendedText: {
+    color: '#4CAF50',
+    fontSize: 18,
+    fontWeight: 'bold'
   }
 });
 

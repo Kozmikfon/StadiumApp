@@ -32,6 +32,7 @@ import MatchCalendarScreen from '../screens/matches/calendar/MatchCalendarScreen
 import CaptainOffersScreen from '../screens/Offers/CaptainOffersScreen';
 import MatchReviewsScreen from '../screens/Review/MatchReviewsScreen';
 import MarkAttendanceScreen from '../screens/Attendance/MarkAttendanceScreen';
+import MatchStatsScreen from '../screens/MatchStat/MatchStatsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -70,6 +71,7 @@ const MainNavigator = () => {
             <Stack.Screen name="CaptainOffer" component={CaptainOffersScreen} />
             <Stack.Screen name="MatchReviews" component={MatchReviewsScreen} />
             <Stack.Screen name="MarkAttendance" component={MarkAttendanceScreen} />
+            <Stack.Screen name="MatchStats" component={MatchStatsScreen} />
 
         </Stack.Navigator>
     );

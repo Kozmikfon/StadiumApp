@@ -9,10 +9,12 @@ const screenWidth = Dimensions.get('window').width;
 
 const HomeScreen = ({ navigation }: any) => {
 
-    const sliderData = [
-        { id: '1', title: 'Haftanın Maçı: Zaptolmazlar vs Sarsılmazlar' },
-        { id: '2', title: 'Haftanın Oyuncusu: Ali Yılmaz - Forvet' },
-    ];
+const sliderData = [
+  { id: '1', title: '📊 Maç İstatistiklerini Gir', screen: 'MatchStats' },
+  { id: '2', title: '📝 Maça Yorum Yap', screen: 'MyMatches' },
+  { id: '3', title: '✔️ Katılım Durumunu Belirt', screen: 'MarkAttendance' }
+];
+
 
     const [profileVisible, setProfileVisible] = useState(false);
     const [userName, setUserName] = useState('');
@@ -180,16 +182,20 @@ const HomeScreen = ({ navigation }: any) => {
             {/* Slider - Haftanın Maçı / Oyuncusu */}
             <Text style={styles.sliderTitle}>📢 Haftanın Öne Çıkanları</Text>
             <FlatList
-                horizontal
-                data={sliderData}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.sliderItem}>
-                        <Text style={styles.sliderText}>{item.title}</Text>
-                    </View>
-                )}
-                showsHorizontalScrollIndicator={false}
-            />            
+  horizontal
+  data={sliderData}
+  keyExtractor={item => item.id}
+  renderItem={({ item }) => (
+    <TouchableOpacity
+      style={styles.sliderItem}
+      onPress={() => navigation.navigate(item.screen, { matchId: /* buraya uygun matchId */ 1 })}
+    >
+      <Text style={styles.sliderText}>{item.title}</Text>
+    </TouchableOpacity>
+  )}
+  showsHorizontalScrollIndicator={false}
+/>
+         
             {/* Modal Profil */}
               <Modal
   animationType="slide"
