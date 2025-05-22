@@ -100,15 +100,33 @@ const HomeScreen = ({ navigation }: any) => {
         <ScrollView contentContainerStyle={styles.container}>
 
              {/* NAVBAR */}
-            <View style={styles.navbar}>
-                <Text style={styles.navbarTitle}>🏟️ Stadyum</Text>
-                <TouchableOpacity
-                    style={styles.profileButton}
-                    onPress={() => setProfileVisible(true)}
-                >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>👤 Profil</Text>
-                </TouchableOpacity>
-            </View>
+           <View style={styles.navbar}>
+  <View>
+    <Text style={styles.navbarTitle}>🏟️ Stadyum</Text>
+    
+    {/* Bilgi Yazısı */}
+    <Text style={styles.tournamentText}>
+      Turnuvaya katılmak için sende yerini al
+    </Text>
+
+    {/* Buton */}
+    <TouchableOpacity
+      style={styles.joinTournamentButton}
+      onPress={() => navigation.navigate('Turnuva')}
+    >
+      <Text style={styles.joinTournamentText}>➕ Turnuvaya Katıl</Text>
+    </TouchableOpacity>
+  </View>
+
+  {/* Profil Butonu */}
+  <TouchableOpacity
+    style={styles.profileButton}
+    onPress={() => setProfileVisible(true)}
+  >
+    <Text style={{ color: 'white', fontWeight: 'bold' }}>👤 Profil</Text>
+  </TouchableOpacity>
+</View>
+
 
 
             {/* Banner */}
@@ -252,159 +270,192 @@ const HomeScreen = ({ navigation }: any) => {
 
 // Styles (aynı kalabilir senin öncekilerle)
 const styles = StyleSheet.create({
-    container: {
-        paddingBottom: 20,
-        backgroundColor: '#f5f5f5',
-    },
-    infoText: {
-      fontSize: 16,
-      marginBottom: 5,
-      textAlign: 'center'
+  container: {
+    paddingBottom: 20,
+    backgroundColor: '#f9f9f9',
   },
-  completeButton: {
-    marginTop: 10,
+  navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+    backgroundColor: '#0a2a6c',
+  },
+  navbarTitle: {
+    fontSize: 26,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  tournamentText: {
+    color: '#ffffff',
+    fontSize: 14,
+    marginTop: 50,
+    marginBottom: 6,
+  },
+  joinTournamentButton: {
+    backgroundColor: '#ff9800',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+  joinTournamentText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  profileButton: {
     backgroundColor: '#1976D2',
-    padding: 10,
-    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    marginTop: 10,
+  },
+  banner: {
+    padding: 20,
     alignItems: 'center',
-    width: '100%',
-},
+  },
+  bannerImage: {
+    width: screenWidth - 40,
+    height: 200,
+    borderRadius: 16,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+  gridItem: {
+    backgroundColor: '#fff',
+    width: screenWidth / 2 - 30,
+    height: 100,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  gridIcon: {
+    fontSize: 32,
+  },
+  gridText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 6,
+  },
+  buttonRow: {
+    marginHorizontal: 20,
+    marginBottom: 10,
+    gap: 10,
+  },
+  searchButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginBottom: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  sliderTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 15,
+    marginVertical: 15,
+  },
+  sliderItem: {
+    backgroundColor: '#fff',
+    width: screenWidth - 60,
+    padding: 18,
+    borderRadius: 12,
+    marginHorizontal: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+  },
+  sliderText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
   card: {
     backgroundColor: '#e3f2fd',
     padding: 20,
-    borderRadius: 10,
-    marginBottom: 15
+    borderRadius: 12,
+    marginBottom: 15,
+    marginTop: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5
+    marginBottom: 5,
   },
-
-  
-    navbar: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        backgroundColor: '#0a2a6c',
-        marginTop: 10,
-    },
-    navbarTitle: {
-        fontSize: 24,
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    profileButton: {
-        backgroundColor: '#1976D2',
-        padding: 8,
-        borderRadius: 20,
-    },
-    iconButton: {
-  padding: 6,
-  backgroundColor: '#1565C0',
-  borderRadius: 6
-},
-    banner: {
-        padding: 20,
-        alignItems: 'center',
-    },
-    bannerImage: {
-        width: screenWidth - 40,
-        height: 200,
-        borderRadius: 10,
-    },
-    gridRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginTop: 15,
-    },
-    gridItem: {
-        backgroundColor: '#fff',
-        width: screenWidth / 2 - 30,
-        height: 100,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 3,
-    },
-    gridIcon: {
-        fontSize: 30,
-    },
-    gridText: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginTop: 5,
-    },
-    buttonRow: {
-        marginHorizontal: 20,
-        marginBottom: 10,
-    },
-    searchButton: {
-        backgroundColor: '#4CAF50',
-        paddingVertical: 12,
-        borderRadius: 10,
-        marginBottom: 10,
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    sliderTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginLeft: 15,
-        marginBottom: 10,
-    },
-    sliderItem: {
-        backgroundColor: '#fff',
-        width: screenWidth - 60,
-        padding: 15,
-        borderRadius: 10,
-        marginHorizontal: 10,
-        elevation: 2,
-    },
-    sliderText: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    modalContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: 'rgba(0,0,0,0.5)'
-},
-modalContent: {
-  backgroundColor: '#fff',
-  padding: 25,
-  borderRadius: 12,
-  width: '80%',
-  alignItems: 'center'
-},
-modalTitle: {
-  fontSize: 20,
-  fontWeight: 'bold',
-  marginBottom: 15
-},
-completeButtons: {
-  backgroundColor: '#2E7D32',
-  paddingVertical: 10,
-  paddingHorizontal: 20,
-  borderRadius: 8,
-  marginTop: 15
-},
-logoutButtons: {
-  backgroundColor: '#D32F2F',
-  paddingVertical: 10,
-  paddingHorizontal: 20,
-  borderRadius: 8,
-  marginTop: 15
-}
-
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 25,
+    borderRadius: 16,
+    width: '85%',
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    alignSelf: 'center',
+    width: '100%',
+    textAlign: 'center',
+  },
+  completeButtons: {
+    backgroundColor: '#2E7D32',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 15,
+    width: '100%',
+    alignItems: 'center',
+  },
+  logoutButtons: {
+    backgroundColor: '#D32F2F',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 15,
+    width: '100%',
+    alignItems: 'center',
+  },
+  infoText: {
+    fontSize: 16,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
 });
+
 
 export default HomeScreen;
 
