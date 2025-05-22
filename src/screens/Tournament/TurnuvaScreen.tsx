@@ -13,6 +13,11 @@ import {
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
+import TournamentMatchModal from '../../components/TournamentMatchModal';
+import LeaveTeamModal from '../../components/LeaveTeamModal';
+import JoinTeamModal from '../../components/JoinTeamModal';
+import CreateTeamModal from '../../components/CreateTeamModal';
+
 
 interface Team {
   id: number;
@@ -51,6 +56,12 @@ const TurnuvaScreen = () => {
   const [playerId, setPlayerId] = useState<number | null>(null);
   const [currentTeamId, setCurrentTeamId] = useState<number | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  //components
+  const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
+const [showJoinTeamModal, setShowJoinTeamModal] = useState(false);
+const [showLeaveTeamModal, setShowLeaveTeamModal] = useState(false);
+const [showMatchModal, setShowMatchModal] = useState(false);
+
 
   const fetchData = async () => {
     try {
@@ -136,80 +147,121 @@ const TurnuvaScreen = () => {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>🏆 14-16 Yaş Gençler Turnuvası</Text>
-      <Text style={styles.subtitle}>📅 15 Temmuz'da başlıyor. Katılım ücretsiz!</Text>
+  <ScrollView style={styles.container}>
+    <Text style={styles.title}>🏆 14-16 Yaş Gençler Turnuvası</Text>
+    <Text style={styles.subtitle}>📅 15 Temmuz'da başlıyor. Katılım ücretsiz!</Text>
 
-      {/* Butonlar */}
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.button} onPress={() => setShowInfoModal(true)}>
-          <Text style={styles.buttonText}>📩 Bilgi Al</Text>
+    {/* Butonlar */}
+    <View style={styles.buttonRow}>
+      <TouchableOpacity style={styles.button} onPress={() => setShowInfoModal(true)}>
+        <Text style={styles.buttonText}>📩 Bilgi Al</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => setShowCreateTeamModal(true)}>
+        <Text style={styles.buttonText}>🛡 Takım Oluştur</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => setShowJoinTeamModal(true)}>
+        <Text style={styles.buttonText}>👥 Takıma Katıl</Text>
+      </TouchableOpacity>
+
+      {currentTeamId && (
+        <TouchableOpacity style={styles.button} onPress={() => setShowLeaveTeamModal(true)}>
+          <Text style={styles.buttonText}>🚪 Takımdan Ayrıl</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Takım Oluştur', 'Modal açılacak')}>
-          <Text style={styles.buttonText}>🛡 Takım Oluştur</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Takıma Katıl', 'Modal açılacak')}>
-          <Text style={styles.buttonText}>👥 Takıma Katıl</Text>
-        </TouchableOpacity>
-        {currentTeamId && (
-          <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Takımdan Ayrıl', 'Modal açılacak')}>
-            <Text style={styles.buttonText}>🚪 Takımdan Ayrıl</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Maç Oluştur', 'Modal açılacak')}>
-          <Text style={styles.buttonText}>➕ Maç Oluştur</Text>
-        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity style={styles.button} onPress={() => setShowMatchModal(true)}>
+        <Text style={styles.buttonText}>➕ Maç Oluştur</Text>
+      </TouchableOpacity>
+    </View>
+
+    {/* TAKIMLAR */}
+    <Text style={styles.sectionTitle}>⚽ Katılan Takımlar</Text>
+    {teams.map(team => (
+      <View key={team.id} style={styles.card}>
+        <Text>{team.name}</Text>
       </View>
+    ))}
 
-      {/* Takımlar */}
-      <Text style={styles.sectionTitle}>⚽ Katılan Takımlar</Text>
-      {teams.map(team => (
-        <View key={team.id} style={styles.card}>
-          <Text>{team.name}</Text>
-        </View>
-      ))}
-
-      {/* Maçlar */}
-      <Text style={styles.sectionTitle}>🗓️ Maç Programı</Text>
-      {matches.map(match => (
-        <View key={match.id} style={styles.card}>
-          <Text>
-            {match.matchDate.slice(0, 16).replace('T', ' ')} - {match.team1.name} vs {match.team2.name} @ {match.fieldName}
-          </Text>
-        </View>
-      ))}
-
-      {/* Puan Durumu */}
-      <Text style={styles.sectionTitle}>🏅 Puan Durumu</Text>
-      {standings.map((team, index) => (
-        <Text key={team.teamId} style={styles.standingText}>
-          {index + 1}. {team.teamName} | O:{team.played} G:{team.won} B:{team.draw} M:{team.lost} - {team.points} P
+    {/* MAÇLAR */}
+    <Text style={styles.sectionTitle}>🗓️ Maç Programı</Text>
+    {matches.map(match => (
+      <View key={match.id} style={styles.card}>
+        <Text>
+          {match.matchDate.slice(0, 16).replace('T', ' ')} - {match.team1.name} vs {match.team2.name} @ {match.fieldName}
         </Text>
-      ))}
+      </View>
+    ))}
 
-      {/* Bilgi Al Modalı */}
-      <Modal visible={showInfoModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Bilgi Talep Formu</Text>
-            <TextInput placeholder="Ad Soyad" style={styles.input} />
-            <TextInput placeholder="E-posta" keyboardType="email-address" style={styles.input} />
-            <TextInput placeholder="Mesaj..." multiline numberOfLines={4} style={[styles.input, { height: 80 }]} />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity onPress={() => { Alert.alert('✅ Gönderildi!'); setShowInfoModal(false); }}>
-                <Text style={styles.modalButtonText}>Gönder</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowInfoModal(false)}>
-                <Text style={styles.modalButtonText}>İptal</Text>
-              </TouchableOpacity>
-            </View>
+    {/* PUAN DURUMU */}
+    <Text style={styles.sectionTitle}>🏅 Puan Durumu</Text>
+    {standings.map((team, index) => (
+      <Text key={team.teamId} style={styles.standingText}>
+        {index + 1}. {team.teamName} | O:{team.played} G:{team.won} B:{team.draw} M:{team.lost} - {team.points} P
+      </Text>
+    ))}
+
+    {/* BİLGİ AL MODALI */}
+    <Modal visible={showInfoModal} transparent animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Bilgi Talep Formu</Text>
+          <TextInput placeholder="Ad Soyad" style={styles.input} />
+          <TextInput placeholder="E-posta" keyboardType="email-address" style={styles.input} />
+          <TextInput placeholder="Mesaj..." multiline numberOfLines={4} style={[styles.input, { height: 80 }]} />
+          <View style={styles.modalButtons}>
+            <TouchableOpacity onPress={() => { Alert.alert('✅ Gönderildi!'); setShowInfoModal(false); }}>
+              <Text style={styles.modalButtonText}>Gönder</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowInfoModal(false)}>
+              <Text style={styles.modalButtonText}>İptal</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </Modal>
-    </ScrollView>
-  );
-};
+      </View>
+    </Modal>
 
+    {/* DİĞER MODALLAR */}
+    {showCreateTeamModal && playerId !== null && (
+      <CreateTeamModal
+        visible={showCreateTeamModal}
+        onClose={() => setShowCreateTeamModal(false)}
+        playerId={playerId}
+        onTeamCreated={fetchData}
+      />
+    )}
+
+    {showJoinTeamModal && playerId !== null && (
+      <JoinTeamModal
+        visible={showJoinTeamModal}
+        onClose={() => setShowJoinTeamModal(false)}
+        playerId={playerId}
+        currentTeamId={currentTeamId}
+        onTeamJoined={fetchData}
+      />
+    )}
+
+    {showLeaveTeamModal && playerId !== null && (
+      <LeaveTeamModal
+        visible={showLeaveTeamModal}
+        onClose={() => setShowLeaveTeamModal(false)}
+        playerId={playerId}
+        onTeamLeft={fetchData}
+      />
+    )}
+
+    {showMatchModal && (
+      <TournamentMatchModal
+        visible={showMatchModal}
+        onClose={() => setShowMatchModal(false)}
+        onMatchCreated={fetchData}
+      />
+    )}
+  </ScrollView>
+);
+
+}
 const styles = StyleSheet.create({
   container: { padding: 16, backgroundColor: '#fff' },
   title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 },
