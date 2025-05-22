@@ -11,6 +11,10 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+interface Team {
+  id: number;
+  name: string;
+}
 
 const API_URL = 'http://10.0.2.2:5275/api';
 
@@ -25,7 +29,7 @@ const TournamentMatchModal = ({ visible, onClose, onMatchCreated }: Props) => {
   const [matchDate, setMatchDate] = useState('');
   const [team1Id, setTeam1Id] = useState<number | null>(null);
   const [team2Id, setTeam2Id] = useState<number | null>(null);
-  const [teams, setTeams] = useState([]);
+  const [teams, setTeams] = useState<Team[]>([]);
 
   const fetchTeams = async () => {
     const token = await AsyncStorage.getItem('token');
