@@ -8,100 +8,98 @@ import axios from 'axios'; // ⭐ Bunu unutma!
 const screenWidth = Dimensions.get('window').width;
 
 const HomeScreen = ({ navigation }: any) => {
+  const sliderData = [
+    { id: '1', title: '📊 Maç İstatistiklerini Gir', screen: 'MatchStats' },
+    { id: '2', title: '📝 Maça Yorum Yap', screen: 'MyMatches' },
+    { id: '3', title: '✔️ Katılım Durumunu Belirt', screen: 'MarkAttendance' }
+  ];
 
-const sliderData = [
-  { id: '1', title: '📊 Maç İstatistiklerini Gir', screen: 'MatchStats' },
-  { id: '2', title: '📝 Maça Yorum Yap', screen: 'MyMatches' },
-  { id: '3', title: '✔️ Katılım Durumunu Belirt', screen: 'MarkAttendance' }
-];
+  const [profileVisible, setProfileVisible] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('');
 
+  // Player futbol bilgileri:
+  const [position, setPosition] = useState('');
+  const [skillLevel, setSkillLevel] = useState<string | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
+  const [teamName, setTeamName] = useState('');
 
-    const [profileVisible, setProfileVisible] = useState(false);
-    const [userName, setUserName] = useState('');
-    const [email, setEmail] = useState('');
-    const [role, setRole] = useState('');
+  // JWT'den bilgileri çekelim:
+  useEffect(() => {
+    const getUserInfo = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
 
-    // Player futbol bilgileri:
-    const [position, setPosition] = useState('');
-    const [skillLevel, setSkillLevel] = useState<string | null>(null);
-    const [rating, setRating] = useState<number | null>(null);
-    const [teamName, setTeamName] = useState('');
-    // JWT'den bilgileri çekelim:
-       useEffect(() => {
-  const getUserInfo = async () => {
-    const token = await AsyncStorage.getItem('token');
-    if (!token) return;
+      const decoded: any = jwtDecode(token);
+      console.log("✅ JWT Bilgileri:", decoded);
 
-    const decoded: any = jwtDecode(token);
-    console.log("✅ JWT Bilgileri:", decoded);
+      setEmail(decoded.sub);
+      const roleFromJwt = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
+      setRole(roleFromJwt);
 
-    setEmail(decoded.sub);
-    setRole(decoded.role);
-    const userId = decoded.userId;
+      const userId = decoded.userId;
 
-    if (decoded.firstName && decoded.lastName) {
-      setUserName(`${decoded.firstName} ${decoded.lastName}`);
-    } else {
-      try {
-        const userResponse = await axios.get(`http://10.0.2.2:5275/api/Users/${userId}`);
-        const user = userResponse.data;
-        setUserName(`${user.firstName} ${user.lastName}`);
-      } catch (error) {
-        console.log("❌ Kullanıcı bilgileri alınamadı", error);
-        setUserName("Bilinmiyor");
+      if (decoded.firstName && decoded.lastName) {
+        setUserName(`${decoded.firstName} ${decoded.lastName}`);
+      } else {
+        try {
+          const userResponse = await axios.get(`http://10.0.2.2:5275/api/Users/${userId}`);
+          const user = userResponse.data;
+          setUserName(`${user.firstName} ${user.lastName}`);
+        } catch (error) {
+          console.log("❌ Kullanıcı bilgileri alınamadı", error);
+          setUserName("Bilinmiyor");
+        }
       }
-    }
 
-    // 🟢 ROL kontrolü olmadan her zaman player bilgisi çek
-    try {
-      const playerResponse = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
-      const player = playerResponse.data;
+      // 🟢 ROL kontrolü olmadan her zaman player bilgisi çek
+      try {
+        const playerResponse = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
+        const player = playerResponse.data;
 
-      setPosition(player.position || 'Belirtilmedi');
-      setSkillLevel(
-        player.skillLevel !== null && player.skillLevel !== undefined
-          ? player.skillLevel.toString()
-          : 'Belirtilmedi'
-      );
-      setRating(
-        player.rating !== null && player.rating !== undefined
-          ? player.rating
-          : 0
-      );
-      setTeamName(player.teamName || 'Takımsız');
+        setPosition(player.position || 'Belirtilmedi');
+        setSkillLevel(
+          player.skillLevel !== null && player.skillLevel !== undefined
+            ? player.skillLevel.toString()
+            : 'Belirtilmedi'
+        );
+        setRating(
+          player.rating !== null && player.rating !== undefined
+            ? player.rating
+            : 0
+        );
+        setTeamName(player.teamName || 'Takımsız');
 
-      console.log("✅ Oyuncu bilgileri çekildi:", player);
-    } catch (error) {
-      console.log("❌ Oyuncu bilgileri çekilemedi:", error);
-      Alert.alert(
-        "Profil Eksik",
-        "Futbol bilgilerin eksik. Profilini tamamlaman gerekiyor.",
-        [
-          {
-            text: "Tamam",
-            onPress: () => navigation.replace('CompletePlayerProfile')
-          }
-        ]
-      );
-    }
-  };
-
-  getUserInfo();
-}, []);
-
-  
-  
-
-    // Çıkış fonksiyonu:
-    const handleLogout = async () => {
-        await AsyncStorage.removeItem('token');
-        navigation.replace('Login');
+        console.log("✅ Oyuncu bilgileri çekildi:", player);
+      } catch (error) {
+        console.log("❌ Oyuncu bilgileri çekilemedi:", error);
+        Alert.alert(
+          "Profil Eksik",
+          "Futbol bilgilerin eksik. Profilini tamamlaman gerekiyor.",
+          [
+            {
+              text: "Tamam",
+              onPress: () => navigation.replace('CompletePlayerProfile')
+            }
+          ]
+        );
+      }
     };
+
+    getUserInfo();
+  }, []);
+
+  // Çıkış fonksiyonu:
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('token');
+    navigation.replace('Login');
+  };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
 
-            {/* NAVBAR */}
+             {/* NAVBAR */}
             <View style={styles.navbar}>
                 <Text style={styles.navbarTitle}>🏟️ Stadyum</Text>
                 <TouchableOpacity
@@ -111,6 +109,7 @@ const sliderData = [
                     <Text style={{ color: 'white', fontWeight: 'bold' }}>👤 Profil</Text>
                 </TouchableOpacity>
             </View>
+
 
             {/* Banner */}
             <LinearGradient colors={['#0a2a6c', '#3a7bd5', '#00d2ff']} style={styles.banner}>
@@ -302,6 +301,11 @@ const styles = StyleSheet.create({
         padding: 8,
         borderRadius: 20,
     },
+    iconButton: {
+  padding: 6,
+  backgroundColor: '#1565C0',
+  borderRadius: 6
+},
     banner: {
         padding: 20,
         alignItems: 'center',

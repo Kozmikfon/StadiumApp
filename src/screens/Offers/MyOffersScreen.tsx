@@ -14,9 +14,11 @@ const MyOffersScreen = ({ navigation }: any) => {
   const fetchOffers = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem('token');
-      const decoded: any = jwtDecode(token || '');
-      const playerId = decoded.playerId;
+const token = localStorage.getItem('token');
+const decoded: any = jwtDecode(token || '');
+
+const rawId = decoded.playerId;
+const playerId = Array.isArray(rawId) ? rawId[0] : rawId;
 
       const response = await axios.get(`http://10.0.2.2:5275/api/Offers/byPlayer/${playerId}`, {
         headers: { Authorization: `Bearer ${token}` }

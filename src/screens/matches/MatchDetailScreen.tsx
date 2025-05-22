@@ -238,8 +238,6 @@ const translateStatus = (status: string) => {
   title="📝 Katılım Durumu"
   onPress={() => navigation.navigate('MarkAttendance', { matchId })}
 />
-
-
           <Button
             title="📝 Değerlendir"
             color="#6A1B9A"

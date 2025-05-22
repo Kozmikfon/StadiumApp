@@ -81,7 +81,7 @@ const PlayerProfileScreen = ({ navigation }: any) => {
   const handleLeaveTeam = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.delete(`http://10.0.2.2:5275/api/TeamMembers/${player.id}`, {
+      await axios.delete(`http://10.0.2.2:5275/api/TeamMembers/leave/${player.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -233,5 +233,4 @@ statsTitle: {
 }
 
 });
-
 export default PlayerProfileScreen;
