@@ -36,7 +36,10 @@ const SendOfferScreen = () => {
         }
 
         const decoded: any = jwtDecode(token);
-        setSenderId(Number(decoded.playerId));
+        const rawPlayerId = decoded.playerId;
+const fixedPlayerId = Array.isArray(rawPlayerId) ? rawPlayerId[0] : rawPlayerId;
+setSenderId(Number(fixedPlayerId));
+
 
         if (!matchIdFromRoute) {
           const matchRes = await axios.get('http://10.0.2.2:5275/api/Matches');
