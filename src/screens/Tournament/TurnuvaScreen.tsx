@@ -64,83 +64,82 @@ const [showMatchModal, setShowMatchModal] = useState(false);
 
 
   const fetchData = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) return;
+    const decoded: any = jwtDecode(token);
+    const userId = decoded.userId;
+    const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const decoded = jwtDecode<DecodedToken>(token);
-      const userId = decoded.userId;
+    const playerRes = await axios.get(`${API_URL}/players/byUser/${userId}`, config);
+    setPlayerId(playerRes.data.id);
+    setCurrentTeamId(playerRes.data.teamId || null);
 
-      const playerRes = await axios.get(`${API_URL}/players/byUser/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setPlayerId(playerRes.data.id);
-      setCurrentTeamId(playerRes.data.teamId || null);
+    const teamRes = await axios.get(`${API_URL}/Teams/tournament-teams`, config);
+    setTeams(teamRes.data);
 
-      const teamRes = await axios.get(`${API_URL}/Teams/tournament-teams`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTeams(teamRes.data);
+    const matchRes = await axios.get(`${API_URL}/Matches/tournament-matches`, config);
+    setMatches(matchRes.data);
 
-      const matchRes = await axios.get(`${API_URL}/Matches/tournament-matches`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMatches(matchRes.data);
+    calculateStandings(matchRes.data); // ✅ Burada çağır
+  } catch (error: any) {
+    console.error("Veri alınırken hata:", error.response?.data || error.message);
+  }
+};
 
-      calculateStandings(matchRes.data);
-    } catch (error) {
-      console.error("Veri alınırken hata:", error);
-    }
-  };
 
   const calculateStandings = (matchList: Match[]) => {
-    const table: { [teamId: number]: Standing } = {};
+  const table: { [teamId: number]: Standing } = {};
 
-    matchList.forEach(match => {
-      if (!match.team1 || !match.team2) return;
+  matchList.forEach(match => {
+    if (!match.team1?.id || !match.team2?.id) {
+      console.warn("Eksik takım bilgisi:", match);
+      return;
+    }
 
-      const team1Id = match.team1.id;
-      const team2Id = match.team2.id;
-      const team1Score = Math.floor(Math.random() * 4);
-      const team2Score = Math.floor(Math.random() * 4);
+    const team1Id = match.team1.id;
+    const team2Id = match.team2.id;
+    const team1Score = Math.floor(Math.random() * 4);
+    const team2Score = Math.floor(Math.random() * 4);
 
-      [team1Id, team2Id].forEach(teamId => {
-        if (!table[teamId]) {
-          const team = teamId === team1Id ? match.team1 : match.team2;
-          table[teamId] = {
-            teamId,
-            teamName: team.name,
-            played: 0,
-            won: 0,
-            draw: 0,
-            lost: 0,
-            points: 0,
-          };
-        }
-      });
-
-      table[team1Id].played += 1;
-      table[team2Id].played += 1;
-
-      if (team1Score > team2Score) {
-        table[team1Id].won += 1;
-        table[team2Id].lost += 1;
-        table[team1Id].points += 3;
-      } else if (team1Score < team2Score) {
-        table[team2Id].won += 1;
-        table[team1Id].lost += 1;
-        table[team2Id].points += 3;
-      } else {
-        table[team1Id].draw += 1;
-        table[team2Id].draw += 1;
-        table[team1Id].points += 1;
-        table[team2Id].points += 1;
+    [team1Id, team2Id].forEach(teamId => {
+      if (!table[teamId]) {
+        const team = teamId === team1Id ? match.team1 : match.team2;
+        table[teamId] = {
+          teamId,
+          teamName: team.name,
+          played: 0,
+          won: 0,
+          draw: 0,
+          lost: 0,
+          points: 0,
+        };
       }
     });
 
-    const sorted = Object.values(table).sort((a, b) => b.points - a.points);
-    setStandings(sorted);
-  };
+    table[team1Id].played += 1;
+    table[team2Id].played += 1;
+
+    if (team1Score > team2Score) {
+      table[team1Id].won += 1;
+      table[team2Id].lost += 1;
+      table[team1Id].points += 3;
+    } else if (team1Score < team2Score) {
+      table[team2Id].won += 1;
+      table[team1Id].lost += 1;
+      table[team2Id].points += 3;
+    } else {
+      table[team1Id].draw += 1;
+      table[team2Id].draw += 1;
+      table[team1Id].points += 1;
+      table[team2Id].points += 1;
+    }
+  });
+
+  const sorted = Object.values(table).sort((a, b) => b.points - a.points);
+  setStandings(sorted);
+};
+
 
   useEffect(() => {
     fetchData();

@@ -77,20 +77,66 @@ const PlayerProfileScreen = ({ navigation }: any) => {
     fetchStats();
   }, [player]);
 
-  // Takımdan ayrıl
   const handleLeaveTeam = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.delete(`http://10.0.2.2:5275/api/TeamMembers/leave/${player.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+  const token = await AsyncStorage.getItem('token');
+  if (!token || !player?.id) {
+    Alert.alert('❌ Hata', 'Giriş yapılmamış veya oyuncu bilgisi eksik.');
+    return;
+  }
 
-      Alert.alert('✅ Takımdan ayrıldınız');
-      setPlayer({ ...player, teamId: null, teamName: null });
-    } catch (error) {
-      Alert.alert('❌ Hata', 'Takımdan ayrılamadınız.');
-    }
-  };
+  Alert.alert(
+    'Emin misiniz?',
+    'Takımdan ayrılmak istediğinize emin misiniz?',
+    [
+      { text: 'İptal', style: 'cancel' },
+      {
+        text: 'Ayrıl',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await axios.delete(`http://10.0.2.2:5275/api/TeamMembers/leave/${player.id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            Alert.alert('✅ Takımdan ayrıldınız');
+            setPlayer({ ...player, teamId: null, teamName: null });
+          } catch (error: any) {
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
+              Alert.alert('⚠️ Hata', error.response.data);
+              return;
+            }
+
+            console.warn('leave/{playerId} başarısız, fallback denenecek...', error);
+
+            // Fallback yöntemi
+            try {
+              const res = await axios.get('http://10.0.2.2:5275/api/TeamMembers', {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const membership = res.data.find((m: any) => m.playerId === player.id);
+
+              if (!membership) {
+                Alert.alert('❌ Hata', 'Takım üyeliği bulunamadı.');
+                return;
+              }
+
+              await axios.delete(`http://10.0.2.2:5275/api/TeamMembers/${membership.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+
+              Alert.alert('✅ Takımdan ayrıldınız (alternatif yöntem)');
+              setPlayer({ ...player, teamId: null, teamName: null });
+            } catch (fallbackError) {
+              console.error('Fallback başarısız:', fallbackError);
+              Alert.alert('❌ Hata', 'Takımdan ayrılamadınız. Lütfen tekrar deneyin.');
+            }
+          }
+        },
+      },
+    ]
+  );
+};
+
 
   // Takıma katıl ekranına git
   const handleJoinTeam = () => {

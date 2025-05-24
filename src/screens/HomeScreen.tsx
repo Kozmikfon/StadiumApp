@@ -3,7 +3,9 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ScrollView, 
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
-import axios from 'axios'; // ⭐ Bunu unutma!
+import axios from 'axios'; 
+import * as Animatable from 'react-native-animatable';
+
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -101,46 +103,38 @@ const HomeScreen = ({ navigation }: any) => {
 
              {/* NAVBAR */}
            <View style={styles.navbar}>
-  <View>
+  <Animatable.View animation="fadeInLeft" delay={100} duration={600}>
     <Text style={styles.navbarTitle}>🏟️ Stadyum</Text>
-    
-    {/* Bilgi Yazısı */}
+
     <Text style={styles.tournamentText}>
       Turnuvaya katılmak için sende yerini al
     </Text>
 
-    {/* Buton */}
     <TouchableOpacity
       style={styles.joinTournamentButton}
       onPress={() => navigation.navigate('Turnuva')}
     >
-      <Text style={styles.joinTournamentText}>➕ Turnuvaya Katıl</Text>
+      <Text style={styles.joinTournamentText}> Turnuvaya Katıl</Text>
     </TouchableOpacity>
-  </View>
+  </Animatable.View>
 
-  {/* Profil Butonu */}
-  <TouchableOpacity
-    style={styles.profileButton}
-    onPress={() => setProfileVisible(true)}
-  >
-    <Text style={{ color: 'white', fontWeight: 'bold' }}>👤 Profil</Text>
-  </TouchableOpacity>
+  <Animatable.View animation="fadeInRight" delay={300} duration={600}>
+    <TouchableOpacity
+    
+      style={styles.profileButton}
+      onPress={() => setProfileVisible(true)}
+    >
+      <Text style={{ color: 'white', fontWeight: 'bold',fontSize:20 }}>👤</Text>
+    </TouchableOpacity>
+  </Animatable.View>
 </View>
 
 
 
-            {/* Banner */}
-            <LinearGradient colors={['#0a2a6c', '#3a7bd5', '#00d2ff']} style={styles.banner}>
-                <Image
-                    source={{ uri: 'https://yandex-images.clstorage.net/1vR00W318/f09e04573WNY/...' }}
-                    style={styles.bannerImage}
-                />
-            </LinearGradient>
-            <Button
-  title="🤝 Takım Karşılaştır"
-  onPress={() => navigation.navigate('SelectTeam1')}
-/>
 
+            {/* Banner */}
+            
+          <View style={styles.banne}>
             {/* Grid Kartlar */}
             <View style={styles.gridRow}>
                 <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('MatchList')}>
@@ -157,19 +151,17 @@ const HomeScreen = ({ navigation }: any) => {
             <View style={styles.gridRow}>
                 <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('PlayerList')}>
                     <Text style={styles.gridIcon}>👥</Text>
-                    <Text style={styles.gridText}>Oyuncular</Text>
+                    <Text style={styles.gridText}>Maçlar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.gridItem} onPress={() => Alert.alert('Sahalar')}>
-                    <Text style={styles.gridIcon}></Text>
-                    <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigation.navigate('MatchCalendar')}
-      >
-        <Text style={styles.cardTitle}>📅 Maç Takvimi</Text>
-        <Text>Haftalık maç takvimini görüntüle</Text>
-      </TouchableOpacity>
+
+                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('MatchCalendar')}>
+                    <Text style={styles.gridIcon}>📅 </Text>
+                    <Text style={styles.gridText}>Maç Takvimi</Text>
                 </TouchableOpacity>
             </View>
+            </View>
+            
+
 
             {/* Maç Ara */}
             <Text style={styles.sliderTitle}>⚽ Maç Seçenekleri</Text>
@@ -194,6 +186,12 @@ const HomeScreen = ({ navigation }: any) => {
                 >
                     <Text style={styles.buttonText}>🔎 Tüm Maçlar</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+  style={styles.compareButton}
+  onPress={() => navigation.navigate('SelectTeam1')}
+>
+  <Text style={styles.compareButtonText}>🤝 Takım Karşılaştır</Text>
+</TouchableOpacity>
             </View>
 
             {/* Slider - Haftanın Maçı / Oyuncusu */}
@@ -275,62 +273,95 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-    backgroundColor: '#0a2a6c',
-  },
-  navbarTitle: {
-    fontSize: 26,
-    color: 'white',
-    fontWeight: 'bold',
-  },
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingTop: 50,
+  paddingBottom: 20,
+  paddingHorizontal: 24,
+  backgroundColor: '#004d40', // koyu zümrüt yeşili gibi
+  borderBottomLeftRadius: 24,
+  borderBottomRightRadius: 24,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+  elevation: 8,
+},
+banne:{
+  backgroundColor: '#E6E3D3', // açık mavi
+},
+
+navbarTitle: {
+  fontSize: 28,
+  fontWeight: 'bold',
+  color: '#ffffff',
+  textShadowColor: 'rgba(17, 17, 17, 0.35)', // yumuşak gri ton
+  textShadowOffset: { width: 1, height: 1 },
+  textShadowRadius: 3,
+  letterSpacing: 0.5,
+},
+
   tournamentText: {
     color: '#ffffff',
     fontSize: 14,
-    marginTop: 50,
-    marginBottom: 6,
+    marginTop: 45,
+    marginBottom: 10,
+    marginLeft:5,
   },
   joinTournamentButton: {
-    backgroundColor: '#ff9800',
+    backgroundColor: '#EF9B0F',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
     alignSelf: 'flex-start',
+    marginTop:1,
   },
   joinTournamentText: {
-    color: 'white',
+    color: '#f8f8ff',
     fontWeight: 'bold',
+    fontFamily: 'Arial',
+    fontSize: 16,
   },
   profileButton: {
-    backgroundColor: '#1976D2',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    
+    backgroundColor: '#004d40',
+    
+    padding:10,
+    
     borderRadius: 20,
     marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 119,
   },
   banner: {
     padding: 20,
     alignItems: 'center',
   },
-  bannerImage: {
-    width: screenWidth - 40,
-    height: 200,
-    borderRadius: 16,
-  },
+bannerImage: {
+  width: screenWidth - 40,
+  height: 140,
+  borderRadius: 16,
+  resizeMode: 'cover',
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowRadius: 6,
+  elevation: 3,
+},
+
   gridRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 20,
+    
+    
   },
   gridItem: {
     backgroundColor: '#fff',
     width: screenWidth / 2 - 30,
     height: 100,
-    borderRadius: 12,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 5,
@@ -338,6 +369,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    marginBottom:6,
   },
   gridIcon: {
     fontSize: 32,
@@ -392,10 +424,10 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#e3f2fd',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 15,
-    marginTop: 5,
+    padding: 19,
+    borderRadius: 19,
+    marginBottom: 22,
+    marginTop: 0,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -454,9 +486,28 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     textAlign: 'center',
   },
+  compareButton: {
+  backgroundColor: '#1976D2',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 25,
+  alignSelf: 'center',
+  marginTop: 16,
+  elevation: 4,
+  shadowColor: '#000',
+  shadowOpacity: 0.2,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 4,
+},
+
+compareButtonText: {
+  color: '#fff',
+  fontWeight: 'bold',
+  fontSize: 16,
+},
+
+ 
 });
-
-
 export default HomeScreen;
 
 
