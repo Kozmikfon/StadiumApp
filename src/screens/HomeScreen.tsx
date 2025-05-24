@@ -151,7 +151,7 @@ const HomeScreen = ({ navigation }: any) => {
             <View style={styles.gridRow}>
                 <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('PlayerList')}>
                     <Text style={styles.gridIcon}>👥</Text>
-                    <Text style={styles.gridText}>Maçlar</Text>
+                    <Text style={styles.gridText}>Oyuncular</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('MatchCalendar')}>
