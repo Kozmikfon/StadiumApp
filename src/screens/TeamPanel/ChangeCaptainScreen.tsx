@@ -11,28 +11,38 @@ const ChangeCaptainScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTeam = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const decoded: any = jwtDecode(token || '');
-        const playerId = decoded.playerId;
+  const fetchTeamAndMembers = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const decoded: any = jwtDecode(token || '');
 
-        const res = await axios.get(`http://10.0.2.2:5275/api/Teams/profile/${playerId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      const rawPlayerId = decoded.playerId;
+      const playerId = Array.isArray(rawPlayerId)
+        ? Number(rawPlayerId[0])
+        : Number(rawPlayerId);
 
-        setTeamId(res.data.id);
-        setCurrentCaptainId(res.data.captainId);
-        setMembers(res.data.members); // DTO'da üyeler zaten varsa buradan gelir
-      } catch (err) {
-        console.error("❌ Takım verisi alınamadı:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      // 1️⃣ Takım bilgisi getir
+      const res = await axios.get(`http://10.0.2.2:5275/api/Teams/profile/${playerId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    fetchTeam();
-  }, []);
+      setTeamId(res.data.id);
+      setCurrentCaptainId(res.data.captainId);
+
+      // 2️⃣ Oyuncu listesini getir
+      const playersRes = await axios.get(`http://10.0.2.2:5275/api/Teams/${res.data.id}/players`);
+      setMembers(playersRes.data);
+    } catch (err) {
+      console.error("❌ Takım ya da oyuncular alınamadı:", err);
+      Alert.alert("Hata", "Bilgiler yüklenemedi.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTeamAndMembers();
+}, []);
+
 
   const handleChangeCaptain = async (newCaptainId: number) => {
     if (newCaptainId === currentCaptainId) {
@@ -42,16 +52,16 @@ const ChangeCaptainScreen = ({ navigation }: any) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.put(`http://10.0.2.2:5275/api/Teams/${teamId}`, {
-        captainId: newCaptainId
-      }, {
+      await axios.put(`http://10.0.2.2:5275/api/Teams/assign-captain?teamId=${teamId}&newCaptainId=${newCaptainId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      // 🟢 State'i güncelle
+      setCurrentCaptainId(newCaptainId);
 
-      Alert.alert("✅ Kaptan değiştirildi");
+      Alert.alert("✅ Kaptan başarıyla değiştirildi");
       navigation.goBack();
     } catch (err) {
-      console.error("❌ Değişim hatası:", err);
+      console.error("❌ Kaptan değiştirilemedi:", err);
       Alert.alert("Hata", "Kaptan değiştirilemedi.");
     }
   };
@@ -67,11 +77,14 @@ const ChangeCaptainScreen = ({ navigation }: any) => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, item.id === currentCaptainId && styles.currentCaptain]}
             onPress={() => handleChangeCaptain(item.id)}
           >
             <Text style={styles.name}>{item.firstName} {item.lastName}</Text>
             <Text>Pozisyon: {item.position}</Text>
+            {item.id === currentCaptainId && (
+              <Text style={styles.captainText}>🎖 Mevcut Kaptan</Text>
+            )}
           </TouchableOpacity>
         )}
         ListEmptyComponent={<Text style={{ textAlign: 'center' }}>Üye bulunamadı.</Text>}
@@ -92,9 +105,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10
   },
+  currentCaptain: {
+    borderColor: '#6A1B9A',
+    borderWidth: 2,
+    backgroundColor: '#f3e5f5'
+  },
   name: {
     fontWeight: 'bold',
     fontSize: 16
+  },
+  captainText: {
+    marginTop: 4,
+    fontStyle: 'italic',
+    color: '#6A1B9A',
+    fontWeight: '600'
   }
 });
 

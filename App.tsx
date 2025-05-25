@@ -3,7 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/login/LoginScreen';
-import MainNavigator from './src/navigation/MainNavigator'; // 👈 MainNavigator
+import MainNavigator from './src/navigation/MainNavigator';
+import { navigationRef } from './src/navigation/RootNavigation';
 
 const Stack = createNativeStackNavigator();
 
@@ -13,21 +14,15 @@ const App = () => {
   useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem('token');
-      if (token) {
-        setInitialRoute('Main');
-      } else {
-        setInitialRoute('Login');
-      }
+      setInitialRoute(token ? 'Main' : 'Login');
     };
     checkToken();
   }, []);
 
-  if (!initialRoute) {
-    return null;  // Token kontrolü tamamlanana kadar ekran boş.
-  }
+  if (!initialRoute) return null; // veya splash gösterilebilir
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Main" component={MainNavigator} />

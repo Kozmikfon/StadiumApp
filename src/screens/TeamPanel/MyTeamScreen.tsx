@@ -9,48 +9,49 @@ const MyTeamScreen = ({ navigation }: any) => {
   const [loading, setLoading] = useState(true);
   const [playerId, setPlayerId] = useState<number | null>(null);
 
-useEffect(() => {
-    
-  const getPlayerId = async () => {
-    const token = await AsyncStorage.getItem('token');
-    const decoded: any = jwtDecode(token || '');
-    const pid = decoded.playerId;
-    setPlayerId(pid);
-  };
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) throw new Error('Token bulunamadı');
 
-  getPlayerId();
-}, []);
+        const decoded: any = jwtDecode(token);
+        const userId = decoded.userId || decoded.nameid || decoded.sub;
 
-useEffect(() => {
-  const fetchTeamInfo = async () => {
-    if (!playerId) return;
+        if (!userId) throw new Error('userId token içinde bulunamadı');
 
-    try {
-      const token = await AsyncStorage.getItem('token');
-      const res = await axios.get(`http://10.0.2.2:5275/api/Teams/profile/${playerId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+        // 🟢 userId'den playerId çekiyoruz
+        const playerRes = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
+        const pid = playerRes.data.id;
 
-      setTeamInfo(res.data);
-    } catch (error) {
-      console.error("❌ Takım bilgisi alınamadı:", error);
-      Alert.alert("Hata", "Takım bilgisi yüklenemedi.");
-    } finally {
-      setLoading(false);
-    }
-  };
+        setPlayerId(pid);
 
-  fetchTeamInfo();
-}, [playerId]);
+        const teamRes = await axios.get(`http://10.0.2.2:5275/api/Teams/profile/${pid}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
+        setTeamInfo(teamRes.data);
+      } catch (error: any) {
+        console.error("❌ Takım bilgisi alınamadı:", error.message || error);
+        Alert.alert("Hata", "Takım bilgisi yüklenemedi.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, []);
 
   const handleLeaveTeam = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const decoded: any = jwtDecode(token || '');
-      const playerId = decoded.playerId;
+      const userId = decoded.userId || decoded.nameid || decoded.sub;
 
-      await axios.delete(`http://10.0.2.2:5275/api/TeamMembers/leave/${playerId}`, {
+      const playerRes = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
+      const pid = playerRes.data.id;
+
+      await axios.delete(`http://10.0.2.2:5275/api/TeamMembers/leave/${pid}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -96,14 +97,12 @@ useEffect(() => {
         <Button title="❌ Takımdan Ayrıl" color="#F44336" onPress={handleLeaveTeam} />
 
         {Number(playerId) === Number(teamInfo.captainId) && (
-  <Button
-    title="🧑‍✈️ Kaptanı Değiştir"
-    color="#6A1B9A"
-    onPress={() => navigation.navigate('ChangeCaptain')}
-  />
-)}
-
-
+          <Button
+            title="🧑‍✈️ Kaptanı Değiştir"
+            color="#6A1B9A"
+            onPress={() => navigation.navigate('ChangeCaptain')}
+          />
+        )}
       </View>
     </View>
   );

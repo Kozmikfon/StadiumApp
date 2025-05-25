@@ -149,9 +149,9 @@ const HomeScreen = ({ navigation }: any) => {
             </View>
 
             <View style={styles.gridRow}>
-                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('PlayerList')}>
-                    <Text style={styles.gridIcon}>👥</Text>
-                    <Text style={styles.gridText}>Oyuncular</Text>
+                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('SelectTeam1')}>
+                    <Text style={styles.gridIcon}>🤝</Text>
+                    <Text style={styles.gridText}>Takım Karşılaştır</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('MatchCalendar')}>
@@ -186,12 +186,7 @@ const HomeScreen = ({ navigation }: any) => {
                 >
                     <Text style={styles.buttonText}>🔎 Tüm Maçlar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-  style={styles.compareButton}
-  onPress={() => navigation.navigate('SelectTeam1')}
->
-  <Text style={styles.compareButtonText}>🤝 Takım Karşılaştır</Text>
-</TouchableOpacity>
+                
             </View>
 
             {/* Slider - Haftanın Maçı / Oyuncusu */}
@@ -506,8 +501,5 @@ compareButtonText: {
   fontSize: 16,
 },
 
- 
 });
 export default HomeScreen;
-
-
