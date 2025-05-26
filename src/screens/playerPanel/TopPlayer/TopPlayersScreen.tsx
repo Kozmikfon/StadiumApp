@@ -1,17 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TopPlayersScreen = () => {
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://10.0.2.2:5275/api/Players/top-players')
-      .then(res => setPlayers(res.data))
-      .catch(err => console.error('❌ Oyuncular alınamadı:', err))
-      .finally(() => setLoading(false));
-  }, []);
+  const fetchTopPlayers = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const res = await axios.get('http://10.0.2.2:5275/api/Players/top-players', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setPlayers(res.data);
+    } catch (err) {
+      console.error('❌ Oyuncular alınamadı:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTopPlayers();
+}, []);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#6A1B9A" style={{ marginTop: 40 }} />;

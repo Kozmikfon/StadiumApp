@@ -12,25 +12,28 @@ const MyOffersScreen = ({ navigation }: any) => {
   const [captainOffers, setCaptainOffers] = useState<any[]>([]);
 
   const fetchOffers = async () => {
-    try {
-      setLoading(true);
-const token = localStorage.getItem('token');
-const decoded: any = jwtDecode(token || '');
+  try {
+    setLoading(true);
 
-const rawId = decoded.playerId;
-const playerId = Array.isArray(rawId) ? rawId[0] : rawId;
+    const token = await AsyncStorage.getItem('token');
+    if (!token) throw new Error('Token bulunamadı');
 
-      const response = await axios.get(`http://10.0.2.2:5275/api/Offers/byPlayer/${playerId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    const decoded: any = jwtDecode(token);
+    const rawId = decoded.playerId;
+    const playerId = Array.isArray(rawId) ? rawId[0] : rawId;
 
-      setOffers(response.data);
-    } catch (err) {
-      console.error('❌ Teklifler alınamadı:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const response = await axios.get(`http://10.0.2.2:5275/api/Offers/byPlayer/${playerId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    setOffers(response.data);
+  } catch (err) {
+    console.error('❌ Teklifler alınamadı:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   useEffect(() => {

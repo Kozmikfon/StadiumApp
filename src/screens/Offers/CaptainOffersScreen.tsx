@@ -13,7 +13,8 @@ const CaptainOffersScreen = ({ navigation }: any) => {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
       const decoded: any = jwtDecode(token || '');
-      const playerId = decoded.playerId;
+      const rawId = decoded.playerId;
+      const playerId = Array.isArray(rawId) ? rawId[0] : rawId;
 
       const res = await axios.get(`http://10.0.2.2:5275/api/Offers/byCaptain/${playerId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -70,69 +71,61 @@ const CaptainOffersScreen = ({ navigation }: any) => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return !isNaN(date.getTime()) ? date.toLocaleDateString() : 'Tarih yok';
+    } catch {
+      return 'Tarih yok';
+    }
+  };
+
   if (loading) {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 30 }} />;
   }
 
   return (
-  <View style={styles.container}>
-    <Text style={styles.title}>⚔️ Takımıma Gelen Maç Teklifleri</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>⚔️ Takımıma Gelen Maç Teklifleri</Text>
 
-    <FlatList
-      data={captainOffers}
-      keyExtractor={(item) => item.id.toString()}
-      renderItem={({ item }) => (
-        <View style={styles.card}>
-          <Text style={styles.label}>
-            🎮 Gönderen Oyuncu: {item.sender?.firstName} {item.sender?.lastName}
-          </Text>
-          <Text style={styles.label}>
-            📅 Maç Tarihi: {new Date(item.match?.matchDate).toLocaleDateString()}
-          </Text>
-          <Text style={styles.label}>📍 Saha: {item.match?.fieldName}</Text>
+      <FlatList
+        data={captainOffers}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.label}>🎮 Gönderen: {item.sender?.firstName || 'Bilinmiyor'} {item.sender?.lastName || ''}</Text>
+            <Text style={styles.label}>📅 Tarih: {formatDate(item.match?.matchDate)}</Text>
+            <Text style={styles.label}>📍 Saha: {item.match?.fieldName || 'Bilinmiyor'}</Text>
+            <Text style={[styles.label, {
+              color:
+                item.status === 'Accepted' ? '#4CAF50' :
+                item.status === 'Rejected' ? '#f44336' : '#FF9800'
+            }]}>📨 Durum: {translateStatus(item.status)}</Text>
 
-          <Text style={[styles.label, {
-            color:
-              item.status === 'Accepted' ? '#4CAF50' :
-              item.status === 'Rejected' ? '#f44336' :
-              '#FF9800'
-          }]}>
-            📨 Durum: {translateStatus(item.status)}
-          </Text>
+            {item.status === 'Pending' && (
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.acceptBtn} onPress={() => updateStatus(item.id, 'Accepted')}>
+                  <Text style={styles.btnText}>Onayla</Text>
+                </TouchableOpacity>
 
-          {item.status === 'Pending' && (
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={styles.acceptBtn}
-                onPress={() => updateStatus(item.id, 'Accepted')}
-              >
-                <Text style={styles.btnText}>Onayla</Text>
-              </TouchableOpacity>
+                <TouchableOpacity style={styles.rejectBtn} onPress={() => updateStatus(item.id, 'Rejected')}>
+                  <Text style={styles.btnText}>Reddet</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-              <TouchableOpacity
-                style={styles.rejectBtn}
-                onPress={() => updateStatus(item.id, 'Rejected')}
-              >
-                <Text style={styles.btnText}>Reddet</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('MatchDetail', { matchId: item.matchId })}
-            style={{ marginTop: 8 }}
-          >
-            <Text style={{ color: '#1976D2', fontWeight: 'bold' }}>📄 Maç Detayı</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      ListEmptyComponent={
-        <Text style={styles.empty}>Takıma gelen maç teklifi bulunmamaktadır.</Text>
-      }
-    />
-  </View>
-);
-
+            <TouchableOpacity
+              onPress={() => navigation.navigate('MatchDetail', { matchId: item.matchId })}
+              style={{ marginTop: 8 }}
+            >
+              <Text style={styles.link}>📄 Maç Detayı</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>Takıma gelen maç teklifi bulunmamaktadır.</Text>}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -175,6 +168,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center'
+  },
+  link: {
+    color: '#1976D2',
+    fontWeight: 'bold'
   }
 });
 

@@ -142,9 +142,9 @@ const HomeScreen = ({ navigation }: any) => {
                     <Text style={styles.gridText}>Maçlar</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('TeamList')}>
-                    <Text style={styles.gridIcon}>🏆</Text>
-                    <Text style={styles.gridText}>Takımlar</Text>
+                <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('MyOffers')}>
+                    <Text style={styles.gridIcon}>📬</Text>
+                    <Text style={styles.gridText}>Tekliflerim</Text>
                 </TouchableOpacity>
             </View>
 

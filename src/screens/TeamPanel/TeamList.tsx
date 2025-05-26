@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Button } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+  Button,
+  TextInput
+} from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
@@ -8,6 +18,8 @@ const TeamList = ({ navigation }: any) => {
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerId, setPlayerId] = useState<number | null>(null);
+  const [teamName, setTeamName] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     const fetchTeamsAndPlayer = async () => {
@@ -16,11 +28,9 @@ const TeamList = ({ navigation }: any) => {
         const decoded: any = jwtDecode(token || '');
         const userId = decoded.userId;
 
-        // 🎯 Oyuncu bilgisi
         const playerRes = await axios.get(`http://10.0.2.2:5275/api/Players/byUser/${userId}`);
         setPlayerId(playerRes.data.id);
 
-        // 🎯 Takım listesi
         const response = await axios.get('http://10.0.2.2:5275/api/Teams');
         setTeams(response.data);
       } catch (error) {
@@ -38,7 +48,6 @@ const TeamList = ({ navigation }: any) => {
     try {
       const token = await AsyncStorage.getItem('token');
 
-      // 🎯 Zaten katıldı mı kontrol
       const membersRes = await axios.get(`http://10.0.2.2:5275/api/TeamMembers`);
       const alreadyInTeam = membersRes.data.some((tm: any) => tm.playerId === playerId);
 
@@ -47,7 +56,6 @@ const TeamList = ({ navigation }: any) => {
         return;
       }
 
-      // 🎯 Katılım isteği gönder
       await axios.post(
         'http://10.0.2.2:5275/api/TeamMembers',
         { teamId, playerId },
@@ -56,10 +64,34 @@ const TeamList = ({ navigation }: any) => {
 
       Alert.alert("✅ Başarılı", "Takıma katıldınız!");
       navigation.replace('PlayerProfile');
-
     } catch (error: any) {
       console.error("❌ Katılım hatası:", error);
       Alert.alert("Hata", "Takıma katılamadınız.");
+    }
+  };
+
+  const handleCreateTeam = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+
+      const createDTO = {
+        name: teamName,
+        captainId: playerId
+      };
+
+      await axios.post(
+        'http://10.0.2.2:5275/api/Teams',
+        createDTO,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      Alert.alert("✅ Başarılı", "Takım oluşturuldu!");
+      setShowCreateModal(false);
+      setTeamName('');
+      navigation.replace('PlayerProfile');
+    } catch (error) {
+      console.error('❌ Takım oluşturma hatası:', error);
+      Alert.alert("Hata", "Takım oluşturulamadı.");
     }
   };
 
@@ -70,31 +102,46 @@ const TeamList = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tüm Takımlar</Text>
+
       <FlatList
         data={teams}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.teamCard}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('TeamDetail', { teamId: item.id })}
-            >
+            <TouchableOpacity onPress={() => navigation.navigate('TeamDetail', { teamId: item.id })}>
               <Text style={styles.teamName}>🏆 {item.name}</Text>
               <Text>Kaptan: {item.captain ? `${item.captain.firstName} ${item.captain.lastName}` : 'Belirtilmemiş'}</Text>
               <Text>Oyuncu Sayısı: {item.players?.length ?? 0}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.joinButton}
-              onPress={() => handleJoin(item.id)}
-            >
+            <TouchableOpacity style={styles.joinButton} onPress={() => handleJoin(item.id)}>
               <Text style={styles.joinButtonText}>Takıma Katıl</Text>
             </TouchableOpacity>
-           
           </View>
-          
         )}
       />
-       <Button title="📨 Takımım" color="#FFA000" onPress={() => navigation.navigate('MyTeam')} />
+
+      
+
+      <View style={{ marginTop: 10 }}>
+        <Button title="➕ Takım Oluştur" color="#1565C0" onPress={() => setShowCreateModal(true)} />
+      </View>
+
+      {showCreateModal && (
+        <View style={styles.modal}>
+          <Text style={styles.modalTitle}>Takım Adı:</Text>
+          <TextInput
+            style={styles.input}
+            value={teamName}
+            onChangeText={setTeamName}
+            placeholder="Takım adını girin"
+          />
+          <Button title="Oluştur" onPress={handleCreateTeam} />
+          <View style={{ marginTop: 10 }}>
+            <Button title="İptal" color="#b71c1c" onPress={() => setShowCreateModal(false)} />
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -130,6 +177,27 @@ const styles = StyleSheet.create({
   joinButtonText: {
     color: 'white',
     fontWeight: 'bold'
+  },
+  modal: {
+    position: 'absolute',
+    top: '30%',
+    left: '10%',
+    right: '10%',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    elevation: 10
+  },
+  modalTitle: {
+    fontSize: 18,
+    marginBottom: 10
+  },
+  input: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10
   }
 });
 

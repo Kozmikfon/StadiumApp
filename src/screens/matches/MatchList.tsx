@@ -89,98 +89,154 @@ const MatchList = ({ navigation }: any) => {
     return <ActivityIndicator size="large" color="#2E7D32" style={{ marginTop: 30 }} />;
   }
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>📅 Maçlar</Text>
-        <Button title="➕ Maç Oluştur" onPress={() => navigation.navigate('CreateMatch')} />
-        <Button title="📋 Maçlarım" color="#1976D2" onPress={() => navigation.navigate('MyMatches')} />
-      </View>
-      
-      {matches.length === 0 ? (
-        <Text style={styles.empty}>Henüz maç bulunamadı.</Text>
-      ) : (
-        <FlatList
-          data={matches}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={[styles.card, item.acceptedCount >= 14 && { backgroundColor: '#ccc' }]}>
+  // ... önceki import'lar aynı
+
+return (
+  <View style={styles.container}>
+    <Text style={styles.title}>📅 Tüm Maçlar</Text>
+
+    <View style={styles.buttonGroup}>
+      <TouchableOpacity style={styles.buttonPrimary} onPress={() => navigation.navigate('CreateMatch')}>
+        <Text style={styles.buttonText}>➕ Maç Oluştur</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.buttonSecondary} onPress={() => navigation.navigate('MyMatches')}>
+        <Text style={styles.buttonText}>📋 Maçlarım</Text>
+      </TouchableOpacity>
+    </View>
+
+    {matches.length === 0 ? (
+      <Text style={styles.empty}>Henüz maç bulunamadı.</Text>
+    ) : (
+      <FlatList
+        data={matches}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => {
+          const isFull = item.acceptedCount >= 14;
+          return (
+            <View style={[styles.card, isFull && styles.cardFull]}>
               <TouchableOpacity
                 onPress={() =>
-                  item.acceptedCount >= 14
+                  isFull
                     ? Alert.alert("Bu maç dolu", "Maç 14 oyuncuya ulaştı.")
                     : navigation.navigate('MatchDetail', { matchId: item.id })
                 }
               >
                 <Text style={styles.matchTeams}>{item.team1Name} vs {item.team2Name}</Text>
-                <Text style={styles.field}>Saha: {item.fieldName}</Text>
+                <Text style={styles.field}>📍 {item.fieldName}</Text>
                 <Text style={styles.date}>
-                  Tarih: {new Date(item.matchDate).toLocaleDateString()} - {new Date(item.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  📅 {new Date(item.matchDate).toLocaleDateString()} - 🕓 {new Date(item.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </Text>
-                <Text style={{ color: item.acceptedCount >= 14 ? 'red' : 'green', fontWeight: 'bold' }}>
-                  {item.acceptedCount}/14 Oyuncu
+                <Text style={[styles.count, isFull ? styles.full : styles.available]}>
+                  {item.acceptedCount}/14 Oyuncu {isFull ? '🛑 DOLU' : ''}
                 </Text>
-                {item.acceptedCount >= 14 && (
-                  <Text style={{ color: 'red', fontWeight: 'bold' }}>🛑 Maç Dolu</Text>
-                )}
               </TouchableOpacity>
-              {item.acceptedCount < 14 && (
+
+              {!isFull && (
                 <TouchableOpacity
-                  style={{ marginTop: 8, backgroundColor: '#4CAF50', padding: 8, borderRadius: 6 }}
-                  onPress={() => navigation.navigate('SendOffer', { matchId:item.id })}
+                  style={styles.offerButton}
+                  onPress={() => navigation.navigate('SendOffer', { matchId: item.id })}
                 >
-                  <Text style={{ color: '#fff', textAlign: 'center', fontWeight: 'bold' }}>➕ Teklif Gönder</Text>
+                  <Text style={styles.offerButtonText}>➕ Teklif Gönder</Text>
                 </TouchableOpacity>
               )}
             </View>
-          )}
-        />
-      )}
-    </View>
-  );
+          );
+        }}
+      />
+    )}
+  </View>
+);
+
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff'
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15
+    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 22,
-    fontWeight: 'bold'
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#2E7D32',
+    textAlign: 'center',
+  },
+  buttonGroup: {
+    flexDirection: 'column',
+    gap: 10,
+    marginBottom: 20,
+  },
+  buttonPrimary: {
+    backgroundColor: '#388E3C',
+    padding: 12,
+    borderRadius: 8,
+  },
+  buttonSecondary: {
+    backgroundColor: '#1976D2',
+    padding: 12,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   empty: {
     textAlign: 'center',
     marginTop: 30,
-    color: 'gray'
+    color: 'gray',
+    fontSize: 16,
   },
   card: {
-    backgroundColor: '#f4f4f4',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15
+    backgroundColor: '#f1f8e9',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderLeftWidth: 5,
+    borderLeftColor: '#4CAF50',
+  },
+  cardFull: {
+    backgroundColor: '#ffebee',
+    borderLeftColor: '#D32F2F',
   },
   matchTeams: {
     fontSize: 18,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    marginBottom: 6,
   },
   field: {
     fontSize: 14,
-    color: '#555',
-    marginTop: 5
+    color: '#333',
+    marginBottom: 4,
   },
   date: {
     fontSize: 14,
-    color: '#333',
-    marginTop: 3
-  }
+    color: '#555',
+    marginBottom: 4,
+  },
+  count: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  full: {
+    color: 'red',
+  },
+  available: {
+    color: 'green',
+  },
+  offerButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 6,
+  },
+  offerButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });
+
 
 export default MatchList;
